@@ -1,41 +1,129 @@
-from gi.repository import Gtk, Adw, Xdp, Gdk  # type:ignore
+from gi.repository import Gtk, Adw, Gdk  # type:ignore
 
 from state import State
 from palettes import default_palettes
 from utils import Utils
 
 
-class PaletteItem(Gtk.Button):
+class PaletteItem(Adw.Bin):
     def __init__(self, color: str) -> None:
         super().__init__()
         self.color = color
+        self.css_class = State.palette_bar.add_palette_item(self.color)
         self.__build_ui()
 
     def __build_ui(self) -> None:
+        self.add_css_class("palette-item")
         self.set_tooltip_text(self.color)
         self.set_halign(Gtk.Align.CENTER)
         self.set_valign(Gtk.Align.CENTER)
-        self.add_css_class("circular")
-        self.css_class = State.add_palette_item(self.color)
         self.add_css_class(self.css_class)
 
-    def do_clicked(self):
-        State.current_color = self.color
-        State.palette_bar.update_color(self.css_class, self.color)
+        left_click_ctrl = Gtk.GestureClick(button=1)
+        left_click_ctrl.connect("released", self.__on_left_click)
+        self.add_controller(left_click_ctrl)
+
+        right_click_ctrl = Gtk.GestureClick(button=3)
+        right_click_ctrl.connect("released", self.__on_right_click)
+        self.add_controller(right_click_ctrl)
+
+    def __on_left_click(self, *_):
+        State.palette_bar.primary_color = self.color
+
+    def __on_right_click(self, *_):
+        State.palette_bar.secondary_color = self.color
 
 
-class PaletteBar(Adw.Bin):
-    portal = Xdp.Portal()
+class PaletteBar(Gtk.Box):
+    __primary_color: str = "#000000ff"
+    __secondary_color: str = "#00000000"
+
+    @property
+    def primary_color(self) -> str:
+        return self.__primary_color
+
+    @primary_color.setter
+    def primary_color(self, new_color: str):
+        self.__primary_color = new_color
+        self.primary_color_btn.set_tooltip_text(new_color + " (Left Click)")
+        self.primary_color_btn.set_css_classes(
+            ["palette-item", self.__get_css_class_for_color(new_color)]
+        )
+
+    @property
+    def secondary_color(self) -> str:
+        return self.__secondary_color
+
+    @secondary_color.setter
+    def secondary_color(self, new_color: str):
+        self.__secondary_color = new_color
+        self.secondary_color_btn.set_tooltip_text(new_color + " (Right Click)")
+        self.secondary_color_btn.set_css_classes(
+            ["palette-item", self.__get_css_class_for_color(new_color)]
+        )
 
     def __init__(self) -> None:
         super().__init__()
         State.palette_bar = self
+        self.__setup_styles()
         self.__build_ui()
         colors: list[str] = default_palettes["cc-29"]
         for color in colors:
             self.__add_item(color)
 
+    def __add_item(self, color: str) -> None:
+        self.palette.append(PaletteItem(color))
+
+    def __get_css_class_for_color(self, color: str) -> str:
+        for css_class in self.styles.split("\n\n"):
+            if color in css_class:
+                return css_class.split("{")[0].strip(". \t")
+
+    def __setup_styles(self):
+        self.styles: str = """
+        .palette-bar {
+            border-radius: 12px;
+            border: solid 1px @borders;
+            margin: 0px 12px 12px 12px;
+            background-color: @card_shade_color;
+        }
+
+        .palette-bar overshoot, .palette-bar undershoot {
+            all: unset;
+        }
+
+        .palette-item {
+            border-radius: 9999px;
+            border: solid 2px @borders;
+            min-width: 30px;
+            min-height: 30px;
+        }
+
+        .palette-current-color-btn {
+            border: solid 2px @borders;
+        }
+
+        .default-primary-color {
+            background-color: #000000ff;
+        }
+
+        .default-secondary-color {
+            background-color: #00000000;
+        }
+        """
+
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_string(self.styles)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            self.css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
+
     def __build_ui(self) -> None:
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.props.width_request = 100
+
         self.palette = Gtk.FlowBox(
             max_children_per_line=2,
             margin_top=6,
@@ -44,52 +132,38 @@ class PaletteBar(Adw.Bin):
             margin_start=6,
             row_spacing=6,
         )
-        color_picker_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-color-picker-symbolic"
+        self.append(
+            Gtk.ScrolledWindow(
+                child=self.palette,
+                vexpand=True,
+                window_placement=Gtk.CornerType.TOP_RIGHT,
+            )
         )
-        color_picker_btn.connect("clicked", self.__on_color_picker_btn_clicked)
 
-        open_palette_btn = Gtk.Button(icon_name="grid-palette-symbolic")
+        self.append(Gtk.Separator())
 
-        top_bar = Gtk.Box(
-            css_classes=["toolbar"],
-            halign=Gtk.Align.CENTER,
-            hexpand=True,
-        )
-        top_bar.append(color_picker_btn)
-        top_bar.append(open_palette_btn)
+        self.primary_color_btn = Adw.Bin()
+        self.primary_color = "#000000ff"
+        self.secondary_color_btn = Adw.Bin()
+        self.secondary_color = "#00000000"
 
         bottom_bar = Gtk.Box(
-            css_classes=["toolbar"],
             halign=Gtk.Align.CENTER,
-            hexpand=True,
+            spacing=6,
+            margin_top=6,
+            margin_bottom=6,
         )
+        bottom_bar.append(self.primary_color_btn)
+        bottom_bar.append(self.secondary_color_btn)
 
-        self.current_color = Gtk.Button(css_classes=["default-color", "pill"])
-        bottom_bar.append(self.current_color)
+        self.append(bottom_bar)
 
-        toolbar_view: Adw.ToolbarView = Adw.ToolbarView(
-            content=Gtk.ScrolledWindow(child=self.palette, vexpand=True),
-        )
-        toolbar_view.add_top_bar(top_bar)
-        toolbar_view.add_bottom_bar(bottom_bar)
-        self.set_child(toolbar_view)
+    def add_palette_item(self, color: str) -> str:
+        """Add new css class for color if not exists. Else return existing css class"""
 
-    def update_color(self, css_class: str, hex_color: str):
-        self.current_color.set_css_classes(["pill", css_class])
-        self.current_color.set_tooltip_text(hex_color)
-
-    def __add_item(self, color: str) -> None:
-        self.palette.append(PaletteItem(color))
-
-    def __on_color_picker_btn_clicked(self, _):
-        def __on_selected(portal: Xdp.Portal, task):
-            color: Gdk.RGBA = Gdk.RGBA()
-            color.red, color.green, color.blue = portal.pick_color_finish(task)
-            color.alpha = 1
-            color_rgba = color.to_string().strip("rgba()").split(",")
-            State.set_current_solor(
-                Utils.rgba_to_hex([int(c) for c in color_rgba] + [255])
-            )
-
-        self.portal.pick_color(None, None, __on_selected)
+        if color in self.styles:
+            return self.__get_css_class_for_color(color)
+        style_class = Utils.generate_random_ascii_string(30)
+        self.styles += f".{style_class}{{background-color:{color};border: solid 2px @borders;}}\n\n"
+        self.css_provider.load_from_string(self.styles)
+        return style_class

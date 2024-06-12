@@ -38,10 +38,13 @@ class DrawingArea(Adw.Bin):
             [(255, 255, 255, 0)] * State.canvas_size for _ in range(State.canvas_size)
         ]  # Initialize all pixels to transparent
 
-        # Use a GtkGestureClick to handle button press events
-        self.click_ctrl: Gtk.GestureClick = Gtk.GestureClick.new()
-        self.click_ctrl.connect("pressed", self.on_button_press)
-        self.drawing_area.add_controller(self.click_ctrl)
+        self.left_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=1)
+        self.left_click_ctrl.connect("pressed", self.__on_left_click)
+        self.drawing_area.add_controller(self.left_click_ctrl)
+
+        self.right_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=3)
+        self.right_click_ctrl.connect("pressed", self.__on_right_click)
+        self.drawing_area.add_controller(self.right_click_ctrl)
 
         # Motion ctrl
         self.motion_ctrl = Gtk.EventControllerMotion()
@@ -60,14 +63,15 @@ class DrawingArea(Adw.Bin):
             return
         self.cur_pos = new_cur_pos
         # If button is clicked - continue drawing
-        if (
-            self.click_ctrl.get_current_button() == 1
-            and new_cur_pos[0] < State.canvas_size
-            and new_cur_pos[1] < State.canvas_size
-        ):
-            State.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
-                State.current_color
-            )
+        if new_cur_pos[0] < State.canvas_size and new_cur_pos[1] < State.canvas_size:
+            if self.left_click_ctrl.get_current_button() == 1:
+                State.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
+                    State.palette_bar.primary_color
+                )
+            elif self.right_click_ctrl.get_current_button() == 3:
+                State.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
+                    State.palette_bar.secondary_color
+                )
         self.drawing_area.queue_draw()
 
     def __on_pointer_leave(self, _):
@@ -102,7 +106,9 @@ class DrawingArea(Adw.Bin):
         # Draw cursor cell
         if self.cur_pos:
             cr.set_source_rgba(
-                *Utils.rgba_to_float(*Utils.hex_to_rgba(State.current_color))
+                *Utils.rgba_to_float(
+                    *Utils.hex_to_rgba(State.palette_bar.primary_color)
+                )
             )
             cr.rectangle(
                 self.cur_pos[0] * self.grid_size,
@@ -112,13 +118,24 @@ class DrawingArea(Adw.Bin):
             )
             cr.fill()
 
-    def on_button_press(
+    def __on_left_click(
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
     ) -> None:
         grid_x: int = int(x // self.grid_size)
         grid_y: int = int(y // self.grid_size)
         if 0 <= grid_x < State.canvas_size and 0 <= grid_y < State.canvas_size:
             State.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
-                State.current_color
-            )  # Toggle pixel
-            self.drawing_area.queue_draw()  # Redraw the drawing area
+                State.palette_bar.primary_color
+            )
+            self.drawing_area.queue_draw()
+
+    def __on_right_click(
+        self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
+    ) -> None:
+        grid_x: int = int(x // self.grid_size)
+        grid_y: int = int(y // self.grid_size)
+        if 0 <= grid_x < State.canvas_size and 0 <= grid_y < State.canvas_size:
+            State.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
+                State.palette_bar.secondary_color
+            )
+            self.drawing_area.queue_draw()

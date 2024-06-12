@@ -9,24 +9,10 @@ if TYPE_CHECKING:
     from drawing_area import DrawingArea
 
 app_styles: str = """
+flowboxchild {all:unset;padding:0px;margin:0px;}
 .drawing-area {
     border-radius: 0px;
     border: solid 1px @borders;
-}
-
-.palette-bar {
-    border-radius: 12px;
-    border: solid 1px @borders;
-    margin: 0px 12px 12px 12px;
-    background-color: @card_shade_color;
-}
-
-.palette-bar overshoot, .palette-bar undershoot{
-    all: unset;
-}
-
-.default-color {
-    background-color: #000000ff;
 }
 """
 
@@ -38,14 +24,14 @@ class State:
     main_window: Adw.ApplicationWindow = None
     palette_bar: PaletteBar = None
     drawing_area: DrawingArea = None
+    toolbar = None
 
     # Styles
     styles: str = app_styles
     css_provider: Gtk.CssProvider
     style_manager: Adw.StyleManager = Adw.StyleManager.get_default()
 
-    current_color: str = "#000000ff"
-    canvas_size: int = 4
+    canvas_size: int = 16
     pixel_data: list = []
 
     @classmethod
@@ -63,11 +49,16 @@ class State:
                 .split("{")[0]
             )
         style_class = Utils.generate_random_ascii_string(20)
-        State.styles += f".{style_class}{{background-color:{color};border: solid 1px shade({color}, 0.9);}}\n"
+        State.styles += (
+            f".{style_class}{{background-color:{color};border: solid 2px @borders;}}\n"
+        )
         cls.update_styles()
         return style_class
 
     @classmethod
-    def set_current_solor(cls, hex: str) -> None:
-        cls.current_color = hex
-        print(cls.current_color)
+    def set_primary_color(cls, hex: str) -> None:
+        cls.primary_color_color = hex
+
+    @classmethod
+    def set_secondary_color(cls, hex: str) -> None:
+        cls.primary_color_color = hex
