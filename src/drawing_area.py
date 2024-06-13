@@ -7,6 +7,9 @@ from utils import Utils
 
 class DrawingArea(Adw.Bin):
     cur_pos: list[int, int] = None
+    grid_size: int = 20
+    canvas_size: int = 16
+    pixel_data: list = []
 
     def __init__(self) -> None:
         super().__init__()
@@ -23,19 +26,17 @@ class DrawingArea(Adw.Bin):
         self.set_cursor_from_name("cell")
         self.add_css_class("drawing-area")
 
-        self.grid_size: int = 20  # Size of each grid cell (pixels)
-
         self.drawing_area: Gtk.DrawingArea = Gtk.DrawingArea(
             halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER
         )
-        self.drawing_area.set_content_width(State.canvas_size * self.grid_size)
-        self.drawing_area.set_content_height(State.canvas_size * self.grid_size)
+        self.drawing_area.set_content_width(self.canvas_size * self.grid_size)
+        self.drawing_area.set_content_height(self.canvas_size * self.grid_size)
         self.drawing_area.set_draw_func(self.on_draw)
 
         self.set_child(self.drawing_area)
 
-        State.pixel_data = [
-            [(255, 255, 255, 0)] * State.canvas_size for _ in range(State.canvas_size)
+        self.pixel_data = [
+            [(255, 255, 255, 0)] * self.canvas_size for _ in range(self.canvas_size)
         ]  # Initialize all pixels to transparent
 
         self.left_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=1)
@@ -63,13 +64,13 @@ class DrawingArea(Adw.Bin):
             return
         self.cur_pos = new_cur_pos
         # If button is clicked - continue drawing
-        if new_cur_pos[0] < State.canvas_size and new_cur_pos[1] < State.canvas_size:
+        if new_cur_pos[0] < self.canvas_size and new_cur_pos[1] < self.canvas_size:
             if self.left_click_ctrl.get_current_button() == 1:
-                State.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
+                self.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
                     State.palette_bar.primary_color
                 )
             elif self.right_click_ctrl.get_current_button() == 3:
-                State.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
+                self.pixel_data[new_cur_pos[1]][new_cur_pos[0]] = Utils.hex_to_rgba(
                     State.palette_bar.secondary_color
                 )
         self.drawing_area.queue_draw()
@@ -85,9 +86,9 @@ class DrawingArea(Adw.Bin):
         width: int,
         height: int,
     ) -> None:
-        for x in range(State.canvas_size):
-            for y in range(State.canvas_size):
-                cr.set_source_rgba(*Utils.rgba_to_float(*State.pixel_data[y][x]))
+        for x in range(self.canvas_size):
+            for y in range(self.canvas_size):
+                cr.set_source_rgba(*Utils.rgba_to_float(*self.pixel_data[y][x]))
                 cr.rectangle(
                     x * self.grid_size,
                     y * self.grid_size,
@@ -123,8 +124,8 @@ class DrawingArea(Adw.Bin):
     ) -> None:
         grid_x: int = int(x // self.grid_size)
         grid_y: int = int(y // self.grid_size)
-        if 0 <= grid_x < State.canvas_size and 0 <= grid_y < State.canvas_size:
-            State.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
+        if 0 <= grid_x < self.canvas_size and 0 <= grid_y < self.canvas_size:
+            self.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
                 State.palette_bar.primary_color
             )
             self.drawing_area.queue_draw()
@@ -134,8 +135,8 @@ class DrawingArea(Adw.Bin):
     ) -> None:
         grid_x: int = int(x // self.grid_size)
         grid_y: int = int(y // self.grid_size)
-        if 0 <= grid_x < State.canvas_size and 0 <= grid_y < State.canvas_size:
-            State.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
+        if 0 <= grid_x < self.canvas_size and 0 <= grid_y < self.canvas_size:
+            self.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
                 State.palette_bar.secondary_color
             )
             self.drawing_area.queue_draw()
