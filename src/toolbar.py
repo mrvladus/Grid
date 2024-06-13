@@ -43,19 +43,19 @@ class Zoom(Gtk.Box):
         self.set_valign(Gtk.Align.END)
         self.set_vexpand(True)
         self.set_orientation(Gtk.Orientation.VERTICAL)
-        self.set_spacing(6)
+        self.set_spacing(5)
 
         self.plus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-plus-symbolic", css_classes=["circular", "flat"]
+            icon_name="grid-plus-symbolic", tooltip_text="Zoom In"
         )
         self.plus_btn.connect("clicked", self.__on_plus_clicked)
         self.append(self.plus_btn)
 
-        self.label: Gtk.Label = Gtk.Label(label="100")
-        self.append(self.label)
+        # self.label: Gtk.Label = Gtk.Label(label="100")
+        # self.append(self.label)
 
         self.minus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-minus-symbolic", css_classes=["circular", "flat"]
+            icon_name="grid-minus-symbolic", tooltip_text="Zoom Out"
         )
         self.minus_btn.connect("clicked", self.__on_minus_clicked)
         self.append(self.minus_btn)
