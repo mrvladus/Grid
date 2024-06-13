@@ -45,18 +45,43 @@ class Zoom(Gtk.Box):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_spacing(6)
 
-        plus_btn: Gtk.Button = Gtk.Button(
+        self.plus_btn: Gtk.Button = Gtk.Button(
             icon_name="grid-plus-symbolic", css_classes=["circular", "flat"]
         )
-        self.append(plus_btn)
+        self.plus_btn.connect("clicked", self.__on_plus_clicked)
+        self.append(self.plus_btn)
 
         self.label: Gtk.Label = Gtk.Label(label="100")
         self.append(self.label)
 
-        minus_btn: Gtk.Button = Gtk.Button(
+        self.minus_btn: Gtk.Button = Gtk.Button(
             icon_name="grid-minus-symbolic", css_classes=["circular", "flat"]
         )
-        self.append(minus_btn)
+        self.minus_btn.connect("clicked", self.__on_minus_clicked)
+        self.append(self.minus_btn)
+
+    def update_ui(self):
+        self.minus_btn.set_sensitive(State.drawing_area.grid_size - 5 > 0)
+
+    def __on_plus_clicked(self, _) -> None:
+        State.drawing_area.grid_size += 5
+        State.drawing_area.drawing_area.set_content_width(
+            State.drawing_area.canvas_size * State.drawing_area.grid_size
+        )
+        State.drawing_area.drawing_area.set_content_height(
+            State.drawing_area.canvas_size * State.drawing_area.grid_size
+        )
+        self.update_ui()
+
+    def __on_minus_clicked(self, _) -> None:
+        State.drawing_area.grid_size -= 5
+        State.drawing_area.drawing_area.set_content_width(
+            State.drawing_area.canvas_size * State.drawing_area.grid_size
+        )
+        State.drawing_area.drawing_area.set_content_height(
+            State.drawing_area.canvas_size * State.drawing_area.grid_size
+        )
+        self.update_ui()
 
 
 class Pencil(ToolbarTool):
