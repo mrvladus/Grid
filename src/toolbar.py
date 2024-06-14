@@ -1,6 +1,6 @@
 from gi.repository import Gdk, Gtk, Xdp  # type:ignore
 from state import State
-from utils import Utils
+import utils as Utils
 
 
 class ToolbarTool(Gtk.Button):

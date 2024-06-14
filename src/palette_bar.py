@@ -2,7 +2,7 @@ from gi.repository import Gtk, Adw, Gdk  # type:ignore
 
 from state import State
 from palettes import default_palettes
-from utils import Utils
+import utils as Utils
 
 
 class PaletteItem(Adw.Bin):
@@ -167,3 +167,5 @@ class PaletteBar(Gtk.Box):
         self.styles += f".{style_class}{{background-color:{color};border: solid 2px @borders;}}\n\n"
         self.css_provider.load_from_string(self.styles)
         return style_class
+    
+

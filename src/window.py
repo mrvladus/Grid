@@ -1,7 +1,7 @@
 from gi.repository import Adw, Gtk  # type:ignore
 from state import State
 from toolbar import Toolbar
-from utils import Utils
+import utils as Utils
 from drawing_area import DrawingArea
 from palette_bar import PaletteBar
 
@@ -27,7 +27,7 @@ class Window(Adw.ApplicationWindow):
         save_img_btn: Gtk.Button = Gtk.Button(
             tooltip_text="Save", icon_name="document-save-symbolic"
         )
-        save_img_btn.connect("clicked", Utils.save_png)
+        save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
         hb.pack_start(save_img_btn)
 
         hbox = Gtk.Box()
@@ -43,3 +43,15 @@ class Window(Adw.ApplicationWindow):
         toolbar_view.add_top_bar(hb)
 
         self.set_content(toolbar_view)
+
+    def __on_save_img_btn_clicked(self, widget: Gtk.Button) -> None:
+        dialog: Gtk.FileDialog = Gtk.FileDialog(initial_name="untitled.png")
+
+        def __save_cb(self, res) -> None:
+            try:
+                path: str = dialog.save_finish(res).get_path()
+                Utils.save_png(path)
+            except BaseException:
+                pass
+
+        dialog.save(self, None, __save_cb)

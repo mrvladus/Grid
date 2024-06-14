@@ -2,7 +2,7 @@ import cairo
 from gi.repository import Adw, Gtk  # type:ignore
 
 from state import State
-from utils import Utils
+import utils as Utils
 
 
 class DrawingArea(Adw.Bin):
