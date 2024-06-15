@@ -1,5 +1,5 @@
 import cairo
-from gi.repository import Adw, Gtk  # type:ignore
+from gi.repository import Adw, Gtk, Gdk  # type:ignore
 
 from state import State
 import utils as Utils
@@ -21,6 +21,7 @@ class DrawingArea(Adw.Bin):
             halign=Gtk.Align.CENTER,
             valign=Gtk.Align.CENTER,
             css_classes=["drawing-area"],
+            cursor=Gdk.Cursor(name="cell"),
         )
         self.drawing_area.set_content_width(self.canvas_size * self.grid_size)
         self.drawing_area.set_content_height(self.canvas_size * self.grid_size)
