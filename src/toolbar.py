@@ -49,21 +49,14 @@ class Zoom(Gtk.Box):
             icon_name="grid-plus-symbolic", tooltip_text="Zoom In"
         )
         self.plus_btn.connect("clicked", self.__on_plus_clicked)
-        ctrl = Gtk.ShortcutController.new()
-        ctrl.set_scope(Gtk.ShortcutScope.GLOBAL)
-        ctrl.add_shortcut(
-            Gtk.Shortcut(
-                action=Gtk.ShortcutAction.parse_string("activate"),
-                trigger=Gtk.ShortcutTrigger.parse_string("<Control>equal"),
-            )
-        )
-        self.plus_btn.add_controller(ctrl)
+        self.plus_btn.add_controller(Utils.button_shortcut("<Control>equal"))
         self.append(self.plus_btn)
 
         self.minus_btn: Gtk.Button = Gtk.Button(
             icon_name="grid-minus-symbolic", tooltip_text="Zoom Out"
         )
         self.minus_btn.connect("clicked", self.__on_minus_clicked)
+        self.minus_btn.add_controller(Utils.button_shortcut("<Control>minus"))
         self.append(self.minus_btn)
 
         # Scroll ctrl

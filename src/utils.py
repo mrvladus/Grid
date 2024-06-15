@@ -1,7 +1,7 @@
 import random
 import string
 import cairo
-from gi.repository import GdkPixbuf  # type:ignore
+from gi.repository import GdkPixbuf, Gtk  # type:ignore
 from state import State
 
 
@@ -70,3 +70,16 @@ def save_png(path: str):
             cr.fill()
 
     surface.write_to_png(path)
+
+
+def button_shortcut(*shortcuts: list[str]) -> Gtk.ShortcutController:
+    ctrl: Gtk.ShortcutController = Gtk.ShortcutController.new()
+    ctrl.set_scope(Gtk.ShortcutScope.GLOBAL)
+    for shortcut in shortcuts:
+        ctrl.add_shortcut(
+            Gtk.Shortcut(
+                action=Gtk.ShortcutAction.parse_string("activate"),
+                trigger=Gtk.ShortcutTrigger.parse_string(shortcut),
+            )
+        )
+    return ctrl
