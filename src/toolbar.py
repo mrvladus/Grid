@@ -49,10 +49,16 @@ class Zoom(Gtk.Box):
             icon_name="grid-plus-symbolic", tooltip_text="Zoom In"
         )
         self.plus_btn.connect("clicked", self.__on_plus_clicked)
+        ctrl = Gtk.ShortcutController.new()
+        ctrl.set_scope(Gtk.ShortcutScope.GLOBAL)
+        ctrl.add_shortcut(
+            Gtk.Shortcut(
+                action=Gtk.ShortcutAction.parse_string("activate"),
+                trigger=Gtk.ShortcutTrigger.parse_string("<Control>equal"),
+            )
+        )
+        self.plus_btn.add_controller(ctrl)
         self.append(self.plus_btn)
-
-        # self.label: Gtk.Label = Gtk.Label(label="100")
-        # self.append(self.label)
 
         self.minus_btn: Gtk.Button = Gtk.Button(
             icon_name="grid-minus-symbolic", tooltip_text="Zoom Out"
@@ -60,8 +66,16 @@ class Zoom(Gtk.Box):
         self.minus_btn.connect("clicked", self.__on_minus_clicked)
         self.append(self.minus_btn)
 
+        # Scroll ctrl
+        scroll_ctrl = Gtk.EventControllerScroll.new(
+            Gtk.EventControllerScrollFlags.VERTICAL
+        )
+        scroll_ctrl.connect("scroll", self.__on_mouse_scroll)
+        State.drawing_area.add_controller(scroll_ctrl)
+
     def update_ui(self):
         self.minus_btn.set_sensitive(State.drawing_area.grid_size - 5 > 0)
+        self.plus_btn.set_sensitive(State.drawing_area.grid_size + 5 < 40)
 
     def __on_plus_clicked(self, _) -> None:
         State.drawing_area.grid_size += 5
@@ -82,6 +96,13 @@ class Zoom(Gtk.Box):
             State.drawing_area.canvas_size * State.drawing_area.grid_size
         )
         self.update_ui()
+
+    def __on_mouse_scroll(self, ec: Gtk.EventControllerScroll, _x: float, y: float):
+        if ec.get_current_event_state() == Gdk.ModifierType.CONTROL_MASK:
+            if y < 0 and self.plus_btn.get_sensitive():
+                self.__on_plus_clicked(None)
+            elif y > 0 and self.minus_btn.get_sensitive():
+                self.__on_minus_clicked(None)
 
 
 class Pencil(ToolbarTool):
@@ -133,4 +154,5 @@ class Toolbar(Gtk.Box):
         self.append(Pencil())
         self.append(Eraser())
         self.append(ColorPicker())
-        self.append(Zoom())
+        self.zoom = Zoom()
+        self.append(self.zoom)

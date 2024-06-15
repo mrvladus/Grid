@@ -17,23 +17,14 @@ class DrawingArea(Adw.Bin):
         self.__build_ui()
 
     def __build_ui(self) -> None:
-        self.set_halign(Gtk.Align.CENTER)
-        self.set_valign(Gtk.Align.CENTER)
-        self.set_margin_top(12)
-        self.set_margin_bottom(12)
-        self.set_margin_start(12)
-        self.set_margin_end(12)
-        self.set_cursor_from_name("cell")
-        self.add_css_class("drawing-area")
-
         self.drawing_area: Gtk.DrawingArea = Gtk.DrawingArea(
-            halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+            css_classes=["drawing-area"],
         )
         self.drawing_area.set_content_width(self.canvas_size * self.grid_size)
         self.drawing_area.set_content_height(self.canvas_size * self.grid_size)
         self.drawing_area.set_draw_func(self.on_draw)
-
-        self.set_child(self.drawing_area)
 
         self.pixel_data = [
             [(255, 255, 255, 0)] * self.canvas_size for _ in range(self.canvas_size)
@@ -52,6 +43,8 @@ class DrawingArea(Adw.Bin):
         self.motion_ctrl.connect("motion", self.__on_pointer_motion)
         self.motion_ctrl.connect("leave", self.__on_pointer_leave)
         self.drawing_area.add_controller(self.motion_ctrl)
+
+        self.set_child(self.drawing_area)
 
     def __on_pointer_motion(self, _, x: float, y: float):
         # Return if pointer is outside area

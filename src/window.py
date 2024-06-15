@@ -44,10 +44,10 @@ class Window(Adw.ApplicationWindow):
 
         self.set_content(toolbar_view)
 
-    def __on_save_img_btn_clicked(self, widget: Gtk.Button) -> None:
+    def __on_save_img_btn_clicked(self, _) -> None:
         dialog: Gtk.FileDialog = Gtk.FileDialog(initial_name="untitled.png")
 
-        def __save_cb(self, res) -> None:
+        def __save_cb(res) -> None:
             try:
                 path: str = dialog.save_finish(res).get_path()
                 Utils.save_png(path)
