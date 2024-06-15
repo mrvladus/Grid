@@ -147,5 +147,4 @@ class Toolbar(Gtk.Box):
         self.append(Pencil())
         self.append(Eraser())
         self.append(ColorPicker())
-        self.zoom = Zoom()
-        self.append(self.zoom)
+        self.append(Zoom())

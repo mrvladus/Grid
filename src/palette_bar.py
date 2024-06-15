@@ -1,5 +1,6 @@
 from gi.repository import Gtk, Adw, Gdk  # type:ignore
 
+from shared import Box
 from state import State
 from palettes import default_palettes
 import utils as Utils
@@ -131,6 +132,7 @@ class PaletteBar(Gtk.Box):
             margin_end=6,
             margin_start=6,
             row_spacing=6,
+            valign=Gtk.Align.START,
         )
         self.append(
             Gtk.ScrolledWindow(
@@ -147,16 +149,15 @@ class PaletteBar(Gtk.Box):
         self.secondary_color_btn = Adw.Bin()
         self.secondary_color = "#00000000"
 
-        bottom_bar = Gtk.Box(
-            halign=Gtk.Align.CENTER,
-            spacing=6,
-            margin_top=6,
-            margin_bottom=6,
+        self.append(
+            Box(
+                children=[self.primary_color_btn, self.secondary_color_btn],
+                halign=Gtk.Align.CENTER,
+                spacing=6,
+                margin_top=6,
+                margin_bottom=6,
+            )
         )
-        bottom_bar.append(self.primary_color_btn)
-        bottom_bar.append(self.secondary_color_btn)
-
-        self.append(bottom_bar)
 
     def add_palette_item(self, color: str) -> str:
         """Add new css class for color if not exists. Else return existing css class"""
@@ -167,5 +168,3 @@ class PaletteBar(Gtk.Box):
         self.styles += f".{style_class}{{background-color:{color};border: solid 2px @borders;}}\n\n"
         self.css_provider.load_from_string(self.styles)
         return style_class
-    
-

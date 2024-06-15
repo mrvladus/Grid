@@ -1,4 +1,5 @@
 from gi.repository import Adw, Gtk  # type:ignore
+from shared import Box
 from state import State
 from toolbar import Toolbar
 import utils as Utils
@@ -30,15 +31,17 @@ class Window(Adw.ApplicationWindow):
         save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
         hb.pack_start(save_img_btn)
 
-        hbox = Gtk.Box()
-        hbox.append(PaletteBar())
-        hbox.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL))
-        hbox.append(Gtk.ScrolledWindow(child=DrawingArea(), hexpand=True))
-        hbox.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL))
-        hbox.append(Toolbar())
-
         toolbar_view: Adw.ToolbarView = Adw.ToolbarView(
-            content=hbox, top_bar_style=Adw.ToolbarStyle.RAISED_BORDER
+            content=Box(
+                children=[
+                    PaletteBar(),
+                    Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
+                    Gtk.ScrolledWindow(child=DrawingArea(), hexpand=True),
+                    Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
+                    Toolbar(),
+                ]
+            ),
+            top_bar_style=Adw.ToolbarStyle.RAISED_BORDER,
         )
         toolbar_view.add_top_bar(hb)
 
