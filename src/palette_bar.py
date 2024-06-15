@@ -82,15 +82,10 @@ class PaletteBar(Gtk.Box):
 
     def __setup_styles(self):
         self.styles: str = """
-        .palette-bar {
-            border-radius: 12px;
-            border: solid 1px @borders;
-            margin: 0px 12px 12px 12px;
-            background-color: @card_shade_color;
-        }
-
-        .palette-bar overshoot, .palette-bar undershoot {
-            all: unset;
+        flowboxchild {
+            all:unset;
+            padding:0px;
+            margin:0px;
         }
 
         .palette-item {
@@ -153,7 +148,7 @@ class PaletteBar(Gtk.Box):
             Box(
                 children=[self.primary_color_btn, self.secondary_color_btn],
                 halign=Gtk.Align.CENTER,
-                spacing=6,
+                spacing=8,
                 margin_top=6,
                 margin_bottom=6,
             )

@@ -1,8 +1,24 @@
-from gi.repository import Gtk, Adw, Gdk  # type:ignore
+from gi.repository import Gtk, Adw  # type:ignore
 
 
 class Box(Gtk.Box):
-    def __init__(self, children: list[str], **kwargs):
+    def __init__(self, children: list[Gtk.Widget], **kwargs):
         super().__init__(**kwargs)
         for child in children:
             self.append(child)
+
+
+def ToolbarView(
+    content: Gtk.Widget,
+    top_bars: list[Gtk.Widget] = None,
+    bottom_bars: list[Gtk.Widget] = None,
+    **tb_kwargs,
+) -> Adw.ToolbarView:
+    toolbar_view: Adw.ToolbarView = Adw.ToolbarView(content=content, **tb_kwargs)
+    if top_bars:
+        for bar in top_bars:
+            toolbar_view.add_top_bar(bar)
+    if bottom_bars:
+        for bar in bottom_bars:
+            toolbar_view.add_bottom_bar(bar)
+    return toolbar_view

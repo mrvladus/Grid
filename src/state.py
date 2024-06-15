@@ -9,14 +9,6 @@ if TYPE_CHECKING:
     from drawing_area import DrawingArea
     from toolbar import Toolbar
 
-app_styles: str = """
-flowboxchild {all:unset;padding:0px;margin:0px;}
-.drawing-area {
-    border-radius: 0px;
-    border: solid 1px @borders;
-}
-"""
-
 
 class State:
     icon_theme: Gtk.IconTheme
@@ -26,8 +18,3 @@ class State:
     palette_bar: PaletteBar = None
     drawing_area: DrawingArea = None
     toolbar: Toolbar = None
-
-    # Styles
-    styles: str = app_styles
-    css_provider: Gtk.CssProvider
-    style_manager: Adw.StyleManager = Adw.StyleManager.get_default()

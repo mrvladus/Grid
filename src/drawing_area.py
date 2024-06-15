@@ -14,9 +14,12 @@ class DrawingArea(Adw.Bin):
     def __init__(self) -> None:
         super().__init__()
         State.drawing_area = self
+        self.__setup_styles()
         self.__build_ui()
 
     def __build_ui(self) -> None:
+        self.add_css_class("drawing-area-container")
+
         self.drawing_area: Gtk.DrawingArea = Gtk.DrawingArea(
             halign=Gtk.Align.CENTER,
             valign=Gtk.Align.CENTER,
@@ -46,6 +49,22 @@ class DrawingArea(Adw.Bin):
         self.drawing_area.add_controller(self.motion_ctrl)
 
         self.set_child(self.drawing_area)
+
+    def __setup_styles(self):
+        self.styles: str = """
+        .drawing-area {
+            border-radius: 0px;
+            border: solid 1px @borders;
+        }
+        """
+
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_string(self.styles)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            self.css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
 
     def __on_pointer_motion(self, _, x: float, y: float):
         # Return if pointer is outside area

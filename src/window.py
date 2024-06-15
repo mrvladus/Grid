@@ -1,10 +1,10 @@
-from gi.repository import Adw, Gtk  # type:ignore
-from shared import Box
-from state import State
-from toolbar import Toolbar
 import utils as Utils
 from drawing_area import DrawingArea
+from gi.repository import Adw, Gtk  # type:ignore
 from palette_bar import PaletteBar
+from shared import Box, ToolbarView
+from state import State
+from toolbar import Toolbar
 
 
 class Window(Adw.ApplicationWindow):
@@ -14,7 +14,6 @@ class Window(Adw.ApplicationWindow):
         self.set_application(State.application)
         State.icon_theme = Gtk.IconTheme.get_for_display(self.get_display())
         State.icon_theme.add_search_path("data/icons")
-
         self.__build_ui()
 
     def __build_ui(self) -> None:
@@ -31,21 +30,21 @@ class Window(Adw.ApplicationWindow):
         save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
         hb.pack_start(save_img_btn)
 
-        toolbar_view: Adw.ToolbarView = Adw.ToolbarView(
-            content=Box(
-                children=[
-                    PaletteBar(),
-                    Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
-                    Gtk.ScrolledWindow(child=DrawingArea(), hexpand=True),
-                    Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
-                    Toolbar(),
-                ]
-            ),
-            top_bar_style=Adw.ToolbarStyle.RAISED_BORDER,
+        self.set_content(
+            ToolbarView(
+                top_bars=[hb],
+                content=Box(
+                    children=[
+                        PaletteBar(),
+                        Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
+                        Gtk.ScrolledWindow(child=DrawingArea(), hexpand=True),
+                        Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
+                        Toolbar(),
+                    ]
+                ),
+                top_bar_style=Adw.ToolbarStyle.RAISED_BORDER,
+            )
         )
-        toolbar_view.add_top_bar(hb)
-
-        self.set_content(toolbar_view)
 
     def __on_save_img_btn_clicked(self, _) -> None:
         dialog: Gtk.FileDialog = Gtk.FileDialog(initial_name="untitled.png")
