@@ -167,11 +167,10 @@ class DrawingArea(Adw.Bin):
                 # )
                 # cr.stroke()
 
-        # Draw temporary stuff
-
-        # Draw the cursor
+        # Draw overlay
         State.toolbar.current_tool.draw_overlay(cr)
 
+        # Draw the cursor
         if self.cur_pos:
             cr.set_source_rgba(0, 0, 1, 1)
             cr.rectangle(
