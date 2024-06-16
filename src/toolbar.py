@@ -1,3 +1,4 @@
+import cairo
 from gi.repository import Gdk, Gtk, Xdp  # type:ignore
 from state import State
 import utils as Utils
@@ -16,9 +17,14 @@ class ToolbarTool(Gtk.Button):
 
     def left_click_hold(self, x: int, y: int) -> None: ...
 
+    def left_click_release(self, x: int, y: int) -> None: ...
+
     def right_click(x: int, y: int) -> None: ...
 
     def right_click_hold(self, x: int, y: int) -> None: ...
+
+    def draw(self, cr, x, y) -> None:
+        pass
 
 
 class Zoom(Gtk.Box):
@@ -88,7 +94,6 @@ class Zoom(Gtk.Box):
 class Pencil(ToolbarTool):
     def __init__(self) -> None:
         super().__init__("Pencil", "grid-pencil-symbolic")
-        State.toolbar.current_tool = self
 
     def left_click(self, x: int, y: int):
         if (
@@ -117,6 +122,92 @@ class Pencil(ToolbarTool):
         self.right_click(x, y)
 
 
+class Line(ToolbarTool):
+    def __init__(self):
+        super().__init__("Line", "grid-pencil-symbolic")
+        self.start_pos = None
+        self.current_pos = None
+        State.toolbar.current_tool = self
+
+    def left_click(self, x: int, y: int) -> None:
+        self.start_pos = (x, y)
+        self.current_pos = (x, y)
+
+    def left_click_hold(self, x: int, y: int) -> None:
+        self.current_pos = (x, y)
+        State.drawing_area.drawing_area.queue_draw()
+
+    def left_click_release(self, x: int, y: int) -> None:
+        if self.start_pos:
+            end_pos = (x, y)
+            self.draw_line(self.start_pos, end_pos)
+            self.start_pos = None
+            self.current_pos = None
+            State.drawing_area.drawing_area.queue_draw()
+
+    def draw(self, cr: cairo.Context, x, y):
+        if not self.start_pos and not self.current_pos:
+            return
+
+        x0, y0 = self.start_pos
+        x1, y1 = self.current_pos
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        err = dx - dy
+
+        cr.set_source_rgba(
+            *Utils.rgba_to_float(*Utils.hex_to_rgba(State.palette_bar.primary_color))
+        )
+
+        while True:
+            cr.rectangle(
+                x0 * State.drawing_area.grid_size,
+                y0 * State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+            )
+            cr.fill()
+            if (x0 == x1) and (y0 == y1):
+                break
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x0 += sx
+            if e2 < dx:
+                err += dx
+                y0 += sy
+
+    def draw_line(self, start_pos: tuple[int, int], end_pos: tuple[int, int]) -> None:
+        x0, y0 = start_pos
+        x1, y1 = end_pos
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        err = dx - dy
+
+        cs: int = State.drawing_area.canvas_size - 1
+
+        while True:
+            if x0 > cs or x0 < 0 or y0 > cs or y0 < 0:
+                break
+            State.drawing_area.pixel_data[y0][x0] = Utils.hex_to_rgba(
+                State.palette_bar.primary_color
+            )
+            if (x0 == x1) and (y0 == y1):
+                break
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x0 += sx
+            if e2 < dx:
+                err += dx
+                y0 += sy
+        State.drawing_area.queue_draw()
+
+
 class Eraser(ToolbarTool):
     def __init__(self) -> None:
         super().__init__("Eraser", "grid-eraser-symbolic")
@@ -129,7 +220,13 @@ class Eraser(ToolbarTool):
             State.drawing_area.pixel_data[y][x] = (255, 255, 255, 0)
             State.drawing_area.drawing_area.queue_draw()
 
+    def left_click_hold(self, x: int, y: int) -> None:
+        self.left_click(x, y)
+
     def right_click(self, x: int, y: int):
+        self.left_click(x, y)
+
+    def right_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
 
 
@@ -167,6 +264,7 @@ class Toolbar(Gtk.Box):
         self.add_css_class("toolbar")
 
         self.append(Pencil())
+        self.append(Line())
         self.append(Eraser())
         self.append(ColorPicker())
         self.append(Zoom())

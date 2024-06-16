@@ -2,6 +2,7 @@ import cairo
 from gi.repository import Adw, Gtk, Gdk  # type:ignore
 
 from state import State
+from toolbar import Line
 import utils as Utils
 
 
@@ -43,6 +44,12 @@ class DrawingArea(Adw.Bin):
         self.left_click_ctrl.connect(
             "pressed",
             lambda _g, _n, x, y: State.toolbar.current_tool.left_click(
+                int(x // self.grid_size), int(y // self.grid_size)
+            ),
+        )
+        self.left_click_ctrl.connect(
+            "released",
+            lambda _g, _n, x, y: State.toolbar.current_tool.left_click_release(
                 int(x // self.grid_size), int(y // self.grid_size)
             ),
         )
@@ -159,7 +166,12 @@ class DrawingArea(Adw.Bin):
                 #     self.grid_size,
                 # )
                 # cr.stroke()
+
+        # Draw temporary stuff
+
         # Draw the cursor
+        State.toolbar.current_tool.draw(cr, x * self.grid_size, y * self.grid_size)
+
         if self.cur_pos:
             cr.set_source_rgba(0, 0, 1, 1)
             cr.rectangle(
