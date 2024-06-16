@@ -23,8 +23,7 @@ class ToolbarTool(Gtk.Button):
 
     def right_click_hold(self, x: int, y: int) -> None: ...
 
-    def draw(self, cr, x, y) -> None:
-        pass
+    def draw_overlay(self, cr: cairo.Context) -> None: ...
 
 
 class Zoom(Gtk.Box):
@@ -145,7 +144,7 @@ class Line(ToolbarTool):
             self.current_pos = None
             State.drawing_area.drawing_area.queue_draw()
 
-    def draw(self, cr: cairo.Context, x, y):
+    def draw_overlay(self, cr: cairo.Context):
         if not self.start_pos and not self.current_pos:
             return
 
@@ -212,7 +211,7 @@ class Eraser(ToolbarTool):
     def __init__(self) -> None:
         super().__init__("Eraser", "grid-eraser-symbolic")
 
-    def left_click(self, x: int, y: int):
+    def left_click(self, x: int, y: int) -> None:
         if (
             0 <= x < State.drawing_area.canvas_size
             and 0 <= y < State.drawing_area.canvas_size
@@ -223,7 +222,7 @@ class Eraser(ToolbarTool):
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
 
-    def right_click(self, x: int, y: int):
+    def right_click(self, x: int, y: int) -> None:
         self.left_click(x, y)
 
     def right_click_hold(self, x: int, y: int) -> None:
@@ -252,7 +251,7 @@ class ColorPicker(Gtk.Button):
 
 
 class Toolbar(Gtk.Box):
-    current_tool: ToolbarTool
+    current_tool: ToolbarTool | Gtk.Button
 
     def __init__(self) -> None:
         super().__init__()

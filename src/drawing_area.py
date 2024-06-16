@@ -170,7 +170,7 @@ class DrawingArea(Adw.Bin):
         # Draw temporary stuff
 
         # Draw the cursor
-        State.toolbar.current_tool.draw(cr, x * self.grid_size, y * self.grid_size)
+        State.toolbar.current_tool.draw_overlay(cr)
 
         if self.cur_pos:
             cr.set_source_rgba(0, 0, 1, 1)
