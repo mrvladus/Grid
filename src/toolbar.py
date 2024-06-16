@@ -6,32 +6,15 @@ import utils as Utils
 class ToolbarTool(Gtk.Button):
     def __init__(self, tooltip: str, icon_name: str) -> None:
         super().__init__()
-        # Create cursor
-        self.cursor: Gdk.Cursor = Gdk.Cursor.new_from_texture(
-            Gdk.Texture.new_from_file(
-                Gtk.IconTheme.get_for_display(self.get_display())
-                .lookup_icon(
-                    icon_name,
-                    None,
-                    16,
-                    1,
-                    Gtk.TextDirection.LTR,
-                    Gtk.IconLookupFlags.FORCE_SYMBOLIC,
-                )
-                .get_file()
-            ),
-            10,
-            10,
-            None,
-        )
-        # Set icon
         self.set_icon_name(icon_name)
-        # Set tooltip
         self.set_tooltip_text(tooltip)
 
     def do_clicked(self) -> None:
         State.toolbar.current_tool = self
-        State.drawing_area.set_cursor(self.cursor)
+
+    def left_click(x: int, y: int) -> None: ...
+
+    def right_click(x: int, y: int) -> None: ...
 
 
 class Zoom(Gtk.Box):
@@ -67,11 +50,11 @@ class Zoom(Gtk.Box):
         State.drawing_area.add_controller(scroll_ctrl)
 
     def update_ui(self):
-        self.minus_btn.set_sensitive(State.drawing_area.grid_size - 5 > 0)
-        self.plus_btn.set_sensitive(State.drawing_area.grid_size + 5 < 40)
+        self.minus_btn.set_sensitive(State.drawing_area.grid_size - 2 > 0)
+        self.plus_btn.set_sensitive(State.drawing_area.grid_size + 2 < 40)
 
     def __on_plus_clicked(self, _) -> None:
-        State.drawing_area.grid_size += 5
+        State.drawing_area.grid_size += 2
         State.drawing_area.drawing_area.set_content_width(
             State.drawing_area.canvas_size * State.drawing_area.grid_size
         )
@@ -81,7 +64,7 @@ class Zoom(Gtk.Box):
         self.update_ui()
 
     def __on_minus_clicked(self, _) -> None:
-        State.drawing_area.grid_size -= 5
+        State.drawing_area.grid_size -= 2
         State.drawing_area.drawing_area.set_content_width(
             State.drawing_area.canvas_size * State.drawing_area.grid_size
         )
@@ -101,14 +84,43 @@ class Zoom(Gtk.Box):
 class Pencil(ToolbarTool):
     def __init__(self) -> None:
         super().__init__("Pencil", "grid-pencil-symbolic")
+        State.toolbar.current_tool = self
 
-    def draw(self):
-        pass
+    def left_click(self, x: int, y: int):
+        if (
+            0 <= x < State.drawing_area.canvas_size
+            and 0 <= y < State.drawing_area.canvas_size
+        ):
+            State.drawing_area.pixel_data[y][x] = Utils.hex_to_rgba(
+                State.palette_bar.primary_color
+            )
+            State.drawing_area.drawing_area.queue_draw()
+
+    def right_click(self, x: int, y: int):
+        if (
+            0 <= x < State.drawing_area.canvas_size
+            and 0 <= y < State.drawing_area.canvas_size
+        ):
+            State.drawing_area.pixel_data[y][x] = Utils.hex_to_rgba(
+                State.palette_bar.secondary_color
+            )
+            State.drawing_area.drawing_area.queue_draw()
 
 
 class Eraser(ToolbarTool):
     def __init__(self) -> None:
         super().__init__("Eraser", "grid-eraser-symbolic")
+
+    def left_click(self, x: int, y: int):
+        if (
+            0 <= x < State.drawing_area.canvas_size
+            and 0 <= y < State.drawing_area.canvas_size
+        ):
+            State.drawing_area.pixel_data[y][x] = (255, 255, 255, 0)
+            State.drawing_area.drawing_area.queue_draw()
+
+    def right_click(self, x: int, y: int):
+        self.left_click(x, y)
 
 
 class ColorPicker(Gtk.Button):
@@ -133,7 +145,7 @@ class ColorPicker(Gtk.Button):
 
 
 class Toolbar(Gtk.Box):
-    current_tool: Gtk.Button
+    current_tool: ToolbarTool
 
     def __init__(self) -> None:
         super().__init__()

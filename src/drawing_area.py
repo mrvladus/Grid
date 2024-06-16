@@ -24,7 +24,7 @@ class DrawingArea(Adw.Bin):
             halign=Gtk.Align.CENTER,
             valign=Gtk.Align.CENTER,
             css_classes=["drawing-area"],
-            cursor=Gdk.Cursor(name="cell"),
+            cursor=Gdk.Cursor(name="none"),
         )
         self.drawing_area.set_content_width(self.canvas_size * self.grid_size)
         self.drawing_area.set_content_height(self.canvas_size * self.grid_size)
@@ -35,11 +35,21 @@ class DrawingArea(Adw.Bin):
         ]  # Initialize all pixels to transparent
 
         self.left_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=1)
-        self.left_click_ctrl.connect("pressed", self.__on_left_click)
+        self.left_click_ctrl.connect(
+            "pressed",
+            lambda _g, _n, x, y: State.toolbar.current_tool.left_click(
+                int(x // self.grid_size), int(y // self.grid_size)
+            ),
+        )
         self.drawing_area.add_controller(self.left_click_ctrl)
 
         self.right_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=3)
-        self.right_click_ctrl.connect("pressed", self.__on_right_click)
+        self.right_click_ctrl.connect(
+            "pressed",
+            lambda _g, _n, x, y: State.toolbar.current_tool.right_click(
+                int(x // self.grid_size), int(y // self.grid_size)
+            ),
+        )
         self.drawing_area.add_controller(self.right_click_ctrl)
 
         # Motion ctrl
@@ -117,39 +127,13 @@ class DrawingArea(Adw.Bin):
                 #     self.grid_size,
                 # )
                 # cr.stroke()
-        # Draw cursor cell
+        # Draw cursor
         if self.cur_pos:
-            cr.set_source_rgba(
-                *Utils.rgba_to_float(
-                    *Utils.hex_to_rgba(State.palette_bar.primary_color)
-                )
-            )
+            cr.set_source_rgba(0, 0, 1, 1)
             cr.rectangle(
-                self.cur_pos[0] * self.grid_size,
-                self.cur_pos[1] * self.grid_size,
-                self.grid_size,
-                self.grid_size,
+                self.cur_pos[0] * self.grid_size + 1,
+                self.cur_pos[1] * self.grid_size + 1,
+                self.grid_size - 2,
+                self.grid_size - 2,
             )
-            cr.fill()
-
-    def __on_left_click(
-        self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
-    ) -> None:
-        grid_x: int = int(x // self.grid_size)
-        grid_y: int = int(y // self.grid_size)
-        if 0 <= grid_x < self.canvas_size and 0 <= grid_y < self.canvas_size:
-            self.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
-                State.palette_bar.primary_color
-            )
-            self.drawing_area.queue_draw()
-
-    def __on_right_click(
-        self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
-    ) -> None:
-        grid_x: int = int(x // self.grid_size)
-        grid_y: int = int(y // self.grid_size)
-        if 0 <= grid_x < self.canvas_size and 0 <= grid_y < self.canvas_size:
-            self.pixel_data[grid_y][grid_x] = Utils.hex_to_rgba(
-                State.palette_bar.secondary_color
-            )
-            self.drawing_area.queue_draw()
+            cr.stroke()
