@@ -14,7 +14,11 @@ class ToolbarTool(Gtk.Button):
 
     def left_click(x: int, y: int) -> None: ...
 
+    def left_click_hold(self, x: int, y: int) -> None: ...
+
     def right_click(x: int, y: int) -> None: ...
+
+    def right_click_hold(self, x: int, y: int) -> None: ...
 
 
 class Zoom(Gtk.Box):
@@ -96,6 +100,9 @@ class Pencil(ToolbarTool):
             )
             State.drawing_area.drawing_area.queue_draw()
 
+    def left_click_hold(self, x: int, y: int) -> None:
+        self.left_click(x, y)
+
     def right_click(self, x: int, y: int):
         if (
             0 <= x < State.drawing_area.canvas_size
@@ -105,6 +112,9 @@ class Pencil(ToolbarTool):
                 State.palette_bar.secondary_color
             )
             State.drawing_area.drawing_area.queue_draw()
+
+    def right_click_hold(self, x: int, y: int) -> None:
+        self.right_click(x, y)
 
 
 class Eraser(ToolbarTool):
