@@ -124,7 +124,7 @@ class Pencil(ToolbarTool):
 
 class Line(ToolbarTool):
     def __init__(self):
-        super().__init__("Line", "grid-pencil-symbolic")
+        super().__init__("Line", "grid-line-symbolic")
         self.start_pos = None
         self.current_pos = None
         State.toolbar.current_tool = self
