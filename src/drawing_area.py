@@ -62,6 +62,12 @@ class DrawingArea(Adw.Bin):
                 int(x // self.grid_size), int(y // self.grid_size)
             ),
         )
+        self.right_click_ctrl.connect(
+            "released",
+            lambda _g, _n, x, y: State.toolbar.current_tool.right_click_release(
+                int(x // self.grid_size), int(y // self.grid_size)
+            ),
+        )
         self.drawing_area.add_controller(self.right_click_ctrl)
 
         # Create and configure the motion controller
