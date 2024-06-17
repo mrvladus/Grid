@@ -12,7 +12,9 @@ class ToolbarTool(Gtk.Button):
         self.add_controller(Utils.button_shortcut(shortcut))
 
     def do_clicked(self) -> None:
+        State.toolbar.deactivate_buttons()
         State.toolbar.current_tool = self
+        self.add_css_class("toolbar-btn-active")
 
     def left_click(x: int, y: int) -> None: ...
 
@@ -39,14 +41,14 @@ class Zoom(Gtk.Box):
         self.set_spacing(5)
 
         self.plus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-plus-symbolic", tooltip_text="Zoom In"
+            icon_name="grid-plus-symbolic", tooltip_text="Zoom In (Ctrl+Plus)"
         )
         self.plus_btn.connect("clicked", self.__on_plus_clicked)
         self.plus_btn.add_controller(Utils.button_shortcut("<Control>equal"))
         self.append(self.plus_btn)
 
         self.minus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-minus-symbolic", tooltip_text="Zoom Out"
+            icon_name="grid-minus-symbolic", tooltip_text="Zoom Out(Ctrl+Minus)"
         )
         self.minus_btn.connect("clicked", self.__on_minus_clicked)
         self.minus_btn.add_controller(Utils.button_shortcut("<Control>minus"))
@@ -237,16 +239,17 @@ class ColorPicker(Gtk.Button):
 
     def __build_ui(self) -> None:
         self.set_icon_name("grid-color-picker-symbolic")
-        self.set_tooltip_text("Color Picker")
+        self.set_tooltip_text("Color Picker (C)")
         self.add_controller(Utils.button_shortcut("C"))
 
     def do_clicked(self):
         def __on_selected(portal: Xdp.Portal, task):
             color: Gdk.RGBA = Gdk.RGBA()
             color.red, color.green, color.blue = portal.pick_color_finish(task)
+            color.alpha = 1
             color_rgba = color.to_string().strip("rgba()").split(",")
-            State.set_current_solor(
-                Utils.rgba_to_hex([int(c) for c in color_rgba] + [255])
+            State.palette_bar.primary_color = Utils.rgba_to_hex(
+                [int(c) for c in color_rgba] + [255]
             )
 
         Xdp.Portal().pick_color(None, None, __on_selected)
@@ -258,6 +261,7 @@ class Toolbar(Gtk.Box):
     def __init__(self) -> None:
         super().__init__()
         State.toolbar = self
+        self.__setup_styles()
         self.__build_ui()
 
     def __build_ui(self) -> None:
@@ -269,3 +273,22 @@ class Toolbar(Gtk.Box):
         self.append(Eraser())
         self.append(ColorPicker())
         self.append(Zoom())
+
+    def __setup_styles(self):
+        self.styles: str = """
+        .toolbar-btn-active {
+            background-color: @borders;
+        }
+        """
+
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_string(self.styles)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            self.css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
+
+    def deactivate_buttons(self) -> None:
+        for btn in Utils.get_children(self):
+            btn.remove_css_class("toolbar-btn-active")

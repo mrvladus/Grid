@@ -80,6 +80,8 @@ class PaletteBar(Gtk.Box):
             if color in css_class:
                 return css_class.split("{")[0].strip(". \t")
 
+        return self.add_palette_item(color)
+
     def __setup_styles(self):
         self.styles: str = """
         flowboxchild {
