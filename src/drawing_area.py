@@ -10,16 +10,16 @@ class DrawingArea(Adw.Bin):
     prev_pos: list[int, int] = None  # Previous position of the cursor on the grid
     grid_size: int = 20  # Size of each grid cell in pixels
     canvas_size: int = 16  # Number of cells in the grid (width and height)
-    pixel_data: list = []  # Stores the color data for each pixel in the grid
+    pixel_data: list[str] = []  # Stores the color data for each pixel in the grid
 
     def __init__(self) -> None:
         super().__init__()
-        State.drawing_area = self  # Register this instance in the global state
-        self.__setup_styles()  # Set up CSS styles for the drawing area
-        self.__build_ui()  # Build the user interface
+        State.drawing_area = self
+        self.__setup_styles()
+        self.__build_ui()
 
     def __build_ui(self) -> None:
-        self.add_css_class("drawing-area-container")  # Add a CSS class to the container
+        self.add_css_class("drawing-area-container")
 
         # Create the drawing area widget
         self.drawing_area: Gtk.DrawingArea = Gtk.DrawingArea(
@@ -35,7 +35,7 @@ class DrawingArea(Adw.Bin):
 
         # Initialize all pixels to transparent
         self.pixel_data = [
-            [(255, 255, 255, 0)] * self.canvas_size for _ in range(self.canvas_size)
+            ["#00000000"] * self.canvas_size for _ in range(self.canvas_size)
         ]
 
         # Create and configure the left click gesture controller
@@ -85,13 +85,14 @@ class DrawingArea(Adw.Bin):
             border: solid 1px @borders;
         }
         """
-        self.css_provider = Gtk.CssProvider()  # Create a CSS provider
-        self.css_provider.load_from_string(self.styles)  # Load the CSS styles
+
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_string(self.styles)
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
             self.css_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
-        )  # Add the CSS provider to the display
+        )
 
     def __interpolate_positions(self, start_pos: list[int], end_pos: list[int]) -> None:
         # Determine the tool action based on the current button pressed
@@ -154,7 +155,7 @@ class DrawingArea(Adw.Bin):
         # Draw the pixel data on the drawing area
         for x in range(self.canvas_size):
             for y in range(self.canvas_size):
-                cr.set_source_rgba(*Utils.rgba_to_float(*self.pixel_data[y][x]))
+                cr.set_source_rgba(*Utils.hex_to_rgba(self.pixel_data[y][x]))
                 cr.rectangle(
                     x * self.grid_size,
                     y * self.grid_size,

@@ -14,17 +14,14 @@ def rgba_to_hex(rgba: tuple[int, int, int, int]) -> str:
     return "#{:02x}{:02x}{:02x}{:02x}".format(r, g, b, a)
 
 
-def rgba_to_float(r, g, b, a):
-    return r / 255.0, g / 255.0, b / 255.0, a / 255.0
-
-
 def hex_to_rgba(hex_code: str) -> tuple[int, int, int, int]:
+    """Convert HEX to RGBA 0-1 floats tuple"""
     hex_code = hex_code.lstrip("#")
     r: int = int(hex_code[0:2], 16)
     g: int = int(hex_code[2:4], 16)
     b: int = int(hex_code[4:6], 16)
     a: int = int(hex_code[6:8], 16) if len(hex_code) > 6 else 255
-    return (r, g, b, a)
+    return (r / 255.0, g / 255.0, b / 255.0, a / 255.0)
 
 
 def get_pallete_colors_from_file(image_path: str) -> list[str]:
@@ -65,7 +62,7 @@ def save_png(path: str):
     # Draw the pixel data onto the surface
     for x in range(State.drawing_area.canvas_size):
         for y in range(State.drawing_area.canvas_size):
-            cr.set_source_rgba(*rgba_to_float(*State.drawing_area.pixel_data[y][x]))
+            cr.set_source_rgba(*hex_to_rgba(State.drawing_area.pixel_data[y][x]))
             cr.rectangle(x, y, 1, 1)
             cr.fill()
 
