@@ -2,7 +2,6 @@ import cairo
 from gi.repository import Adw, Gtk, Gdk  # type:ignore
 
 from state import State
-from toolbar import Line
 import utils as Utils
 
 

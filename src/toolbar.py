@@ -5,10 +5,11 @@ import utils as Utils
 
 
 class ToolbarTool(Gtk.Button):
-    def __init__(self, tooltip: str, icon_name: str) -> None:
+    def __init__(self, tooltip: str, icon_name: str, shortcut: str) -> None:
         super().__init__()
         self.set_icon_name(icon_name)
         self.set_tooltip_text(tooltip)
+        self.add_controller(Utils.button_shortcut(shortcut))
 
     def do_clicked(self) -> None:
         State.toolbar.current_tool = self
@@ -92,7 +93,7 @@ class Zoom(Gtk.Box):
 
 class Pencil(ToolbarTool):
     def __init__(self) -> None:
-        super().__init__("Pencil", "grid-pencil-symbolic")
+        super().__init__("Pencil (P)", "grid-pencil-symbolic", "P")
 
     def left_click(self, x: int, y: int):
         if (
@@ -123,7 +124,7 @@ class Pencil(ToolbarTool):
 
 class Line(ToolbarTool):
     def __init__(self):
-        super().__init__("Line", "grid-line-symbolic")
+        super().__init__("Line (L)", "grid-line-symbolic", "L")
         self.start_pos = None
         self.current_pos = None
         State.toolbar.current_tool = self
@@ -209,7 +210,7 @@ class Line(ToolbarTool):
 
 class Eraser(ToolbarTool):
     def __init__(self) -> None:
-        super().__init__("Eraser", "grid-eraser-symbolic")
+        super().__init__("Eraser (E)", "grid-eraser-symbolic", "E")
 
     def left_click(self, x: int, y: int) -> None:
         if (
@@ -237,6 +238,7 @@ class ColorPicker(Gtk.Button):
     def __build_ui(self) -> None:
         self.set_icon_name("grid-color-picker-symbolic")
         self.set_tooltip_text("Color Picker")
+        self.add_controller(Utils.button_shortcut("C"))
 
     def do_clicked(self):
         def __on_selected(portal: Xdp.Portal, task):
