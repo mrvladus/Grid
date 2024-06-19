@@ -5,6 +5,7 @@ from palette_bar import PaletteBar
 from shared import Box, ToolbarView
 from state import State
 from toolbar import Toolbar
+from new_dialog import NewDialog
 
 
 class Window(Adw.ApplicationWindow):
@@ -29,6 +30,12 @@ class Window(Adw.ApplicationWindow):
         )
         save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
         hb.pack_start(save_img_btn)
+
+        new_btn: Gtk.Button = Gtk.Button(
+            tooltip_text="New", icon_name="document-save-symbolic"
+        )
+        new_btn.connect("clicked", self.__on_new_btn_clicked)
+        hb.pack_start(new_btn)
 
         self.set_content(
             ToolbarView(
@@ -57,3 +64,8 @@ class Window(Adw.ApplicationWindow):
                 pass
 
         dialog.save(self, None, __save_cb)
+
+    def __on_new_btn_clicked(self, _) -> None:
+        if not State.new_dialog:
+            State.new_dialog = NewDialog()
+        State.new_dialog.present(self)
