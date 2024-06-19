@@ -115,8 +115,8 @@ class Pencil(DrawTool):
 
     def left_click(self, x: int, y: int):
         if (
-            0 <= x < State.drawing_area.canvas_size
-            and 0 <= y < State.drawing_area.canvas_size
+            0 <= x < State.drawing_area.canvas_size.x
+            and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
             State.drawing_area.drawing_area.queue_draw()
@@ -126,8 +126,8 @@ class Pencil(DrawTool):
 
     def right_click(self, x: int, y: int):
         if (
-            0 <= x < State.drawing_area.canvas_size
-            and 0 <= y < State.drawing_area.canvas_size
+            0 <= x < State.drawing_area.canvas_size.x
+            and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.secondary_color
             State.drawing_area.drawing_area.queue_draw()
@@ -212,7 +212,8 @@ class Line(DrawTool):
         sy = 1 if y0 < y1 else -1
         err = dx - dy
 
-        cs: int = State.drawing_area.canvas_size - 1
+        cs_x: int = State.drawing_area.canvas_size.x - 1
+        cs_y: int = State.drawing_area.canvas_size.y - 1
 
         if State.drawing_area.left_click_ctrl.get_current_button() == 1:
             color = State.palette_bar.primary_color
@@ -220,7 +221,7 @@ class Line(DrawTool):
             color = State.palette_bar.secondary_color
 
         while True:
-            if x0 > cs or x0 < 0 or y0 > cs or y0 < 0:
+            if x0 > cs_x or x0 < 0 or y0 > cs_y or y0 < 0:
                 break
             State.drawing_area.pixel_data[y0][x0] = color
             if (x0 == x1) and (y0 == y1):
@@ -241,8 +242,8 @@ class Eraser(DrawTool):
 
     def left_click(self, x: int, y: int) -> None:
         if (
-            0 <= x < State.drawing_area.canvas_size
-            and 0 <= y < State.drawing_area.canvas_size
+            0 <= x < State.drawing_area.canvas_size.x
+            and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = "#00000000"
             State.drawing_area.drawing_area.queue_draw()

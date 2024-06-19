@@ -9,12 +9,11 @@ class Box(Gtk.Box):
 
 
 def ToolbarView(
-    content: Gtk.Widget,
     top_bars: list[Gtk.Widget] = None,
     bottom_bars: list[Gtk.Widget] = None,
     **tb_kwargs,
 ) -> Adw.ToolbarView:
-    toolbar_view: Adw.ToolbarView = Adw.ToolbarView(content=content, **tb_kwargs)
+    toolbar_view: Adw.ToolbarView = Adw.ToolbarView(**tb_kwargs)
     if top_bars:
         for bar in top_bars:
             toolbar_view.add_top_bar(bar)

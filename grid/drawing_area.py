@@ -3,13 +3,20 @@ from gi.repository import Adw, Gtk, Gdk  # type:ignore
 
 from state import State
 import utils as Utils
+from dataclasses import dataclass
+
+
+@dataclass
+class Point:
+    x: int
+    y: int
 
 
 class DrawingArea(Adw.Bin):
     cur_pos: list[int, int] = None  # Current position of the cursor on the grid
     prev_pos: list[int, int] = None  # Previous position of the cursor on the grid
     grid_size: int = 20  # Size of each grid cell in pixels
-    canvas_size: int = 16  # Number of cells in the grid (width and height)
+    canvas_size: Point = Point(16, 16)
     pixel_data: list[str] = []  # Stores the color data for each pixel in the grid
 
     def __init__(self) -> None:
@@ -29,13 +36,13 @@ class DrawingArea(Adw.Bin):
             cursor=Gdk.Cursor(name="cell"),
         )
         # Set the size of the drawing area based on the grid size and canvas size
-        self.drawing_area.set_content_width(self.canvas_size * self.grid_size)
-        self.drawing_area.set_content_height(self.canvas_size * self.grid_size)
+        self.drawing_area.set_content_width(self.canvas_size.x * self.grid_size)
+        self.drawing_area.set_content_height(self.canvas_size.y * self.grid_size)
         self.drawing_area.set_draw_func(self.on_draw)
 
         # Initialize all pixels to transparent
         self.pixel_data = [
-            ["#00000000"] * self.canvas_size for _ in range(self.canvas_size)
+            ["#00000000"] * self.canvas_size.x for _ in range(self.canvas_size.y)
         ]
 
         # Create and configure the left click gesture controller
@@ -153,8 +160,8 @@ class DrawingArea(Adw.Bin):
         _height: int,
     ) -> None:
         # Draw the pixel data on the drawing area
-        for x in range(self.canvas_size):
-            for y in range(self.canvas_size):
+        for x in range(self.canvas_size.x):
+            for y in range(self.canvas_size.y):
                 cr.set_source_rgba(*Utils.hex_to_rgba(self.pixel_data[y][x]))
                 cr.rectangle(
                     x * self.grid_size,
@@ -173,7 +180,7 @@ class DrawingArea(Adw.Bin):
                 # )
                 # cr.stroke()
 
-        # Draw overlay
+        # Draw tool overlay
         State.toolbar.current_tool.draw_overlay(cr)
 
         # Draw the cursor
