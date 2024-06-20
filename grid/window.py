@@ -1,6 +1,6 @@
 import utils as Utils
 from drawing_area import DrawingArea
-from gi.repository import Adw, Gtk  # type:ignore
+from gi.repository import Adw, Gio, Gtk  # type:ignore
 from palette_bar import PaletteBar
 from shared import Box, ToolbarView
 from state import State
@@ -24,18 +24,25 @@ class Window(Adw.ApplicationWindow):
         self.set_default_size(800, 600)
 
         # Content
-        hb: Adw.HeaderBar = Adw.HeaderBar()
         save_img_btn: Gtk.Button = Gtk.Button(
             tooltip_text="Save", icon_name="document-save-symbolic"
         )
         save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
-        hb.pack_start(save_img_btn)
 
         new_btn: Gtk.Button = Gtk.Button(
-            tooltip_text="New", icon_name="document-save-symbolic"
+            tooltip_text="New", icon_name="grid-new-symbolic"
         )
         new_btn.connect("clicked", self.__on_new_btn_clicked)
+
+        open_btn: Gtk.Button = Gtk.Button(
+            tooltip_text="Open", icon_name="grid-open-symbolic"
+        )
+        open_btn.connect("clicked", self.__on_open_btn_clicked)
+
+        hb: Adw.HeaderBar = Adw.HeaderBar()
         hb.pack_start(new_btn)
+        hb.pack_start(open_btn)
+        hb.pack_start(save_img_btn)
 
         self.set_content(
             ToolbarView(
@@ -54,18 +61,29 @@ class Window(Adw.ApplicationWindow):
         )
 
     def __on_save_img_btn_clicked(self, _) -> None:
-        dialog: Gtk.FileDialog = Gtk.FileDialog(initial_name="untitled.png")
-
-        def __save_cb(res) -> None:
+        def __save_cb(dialog: Gtk.FileDialog, res: Gio.Task) -> None:
             try:
                 path: str = dialog.save_finish(res).get_path()
                 Utils.save_png(path)
-            except BaseException:
-                pass
+            except BaseException as e:
+                print(e)
 
-        dialog.save(self, None, __save_cb)
+        Gtk.FileDialog(initial_name="untitled.png").save(self, None, __save_cb)
 
     def __on_new_btn_clicked(self, _) -> None:
         if not State.new_dialog:
             State.new_dialog = NewDialog()
         State.new_dialog.present(self)
+
+    def __on_open_btn_clicked(self, _) -> None:
+        def __open_cb(dialog: Gtk.FileDialog, res: Gio.Task) -> None:
+            try:
+                path: str = dialog.open_finish(res).get_path()
+                pixel_data: list[list[str]] = Utils.load_png(path)
+                State.drawing_area.load_image(pixel_data)
+            except BaseException as e:
+                print(e)
+
+        Gtk.FileDialog(default_filter=Gtk.FileFilter(patterns=["*.png"])).open(
+            self, None, __open_cb
+        )

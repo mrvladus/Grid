@@ -50,18 +50,50 @@ def get_pallete_colors_from_file(image_path: str) -> list[str]:
     return colors
 
 
+def load_png(path: str) -> list[list[str]]:
+    # Load the image
+    pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+
+    # Get image properties
+    width = pixbuf.get_width()
+    height = pixbuf.get_height()
+    rowstride = pixbuf.get_rowstride()
+    n_channels = pixbuf.get_n_channels()
+    pixels = pixbuf.get_pixels()
+
+    # Initialize the 2D array for HEX values
+    hex_array = []
+
+    for y in range(height):
+        row = []
+        for x in range(width):
+            offset = y * rowstride + x * n_channels
+            r = pixels[offset]
+            g = pixels[offset + 1]
+            b = pixels[offset + 2]
+            if n_channels == 4:
+                a = pixels[offset + 3]
+                hex_value = f"#{r:02X}{g:02X}{b:02X}{a:02X}"
+            else:
+                hex_value = f"#{r:02X}{g:02X}{b:02X}"
+            row.append(hex_value)
+        hex_array.append(row)
+
+    return hex_array
+
+
 def save_png(path: str):
     # Create a Cairo surface to draw on
-    surface = cairo.ImageSurface(
+    surface: cairo.ImageSurface = cairo.ImageSurface(
         cairo.FORMAT_ARGB32,
-        State.drawing_area.canvas_size,
-        State.drawing_area.canvas_size,
+        State.drawing_area.canvas_size.x,
+        State.drawing_area.canvas_size.y,
     )
-    cr = cairo.Context(surface)
+    cr: cairo.Context = cairo.Context(surface)
 
     # Draw the pixel data onto the surface
-    for x in range(State.drawing_area.canvas_size):
-        for y in range(State.drawing_area.canvas_size):
+    for x in range(State.drawing_area.canvas_size.x):
+        for y in range(State.drawing_area.canvas_size.y):
             cr.set_source_rgba(*hex_to_rgba(State.drawing_area.pixel_data[y][x]))
             cr.rectangle(x, y, 1, 1)
             cr.fill()

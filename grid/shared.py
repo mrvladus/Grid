@@ -1,4 +1,11 @@
+from typing import Any, Callable
 from gi.repository import Gtk, Adw  # type:ignore
+
+
+class Button(Gtk.Button):
+    def __init__(self, on_click: Callable, **kwargs):
+        super().__init__(**kwargs)
+        self.connect("clicked", on_click)
 
 
 class Box(Gtk.Box):

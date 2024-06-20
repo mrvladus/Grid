@@ -84,20 +84,20 @@ class Zoom(Gtk.Box, CustomTool):
     def __on_plus_clicked(self, _) -> None:
         State.drawing_area.grid_size += 2
         State.drawing_area.drawing_area.set_content_width(
-            State.drawing_area.canvas_size * State.drawing_area.grid_size
+            State.drawing_area.canvas_size.x * State.drawing_area.grid_size
         )
         State.drawing_area.drawing_area.set_content_height(
-            State.drawing_area.canvas_size * State.drawing_area.grid_size
+            State.drawing_area.canvas_size.y * State.drawing_area.grid_size
         )
         self.update_ui()
 
     def __on_minus_clicked(self, _) -> None:
         State.drawing_area.grid_size -= 2
         State.drawing_area.drawing_area.set_content_width(
-            State.drawing_area.canvas_size * State.drawing_area.grid_size
+            State.drawing_area.canvas_size.x * State.drawing_area.grid_size
         )
         State.drawing_area.drawing_area.set_content_height(
-            State.drawing_area.canvas_size * State.drawing_area.grid_size
+            State.drawing_area.canvas_size.y * State.drawing_area.grid_size
         )
         self.update_ui()
 

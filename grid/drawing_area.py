@@ -35,15 +35,11 @@ class DrawingArea(Adw.Bin):
             css_classes=["drawing-area"],
             cursor=Gdk.Cursor(name="cell"),
         )
-        # Set the size of the drawing area based on the grid size and canvas size
-        self.drawing_area.set_content_width(self.canvas_size.x * self.grid_size)
-        self.drawing_area.set_content_height(self.canvas_size.y * self.grid_size)
-        self.drawing_area.set_draw_func(self.on_draw)
 
         # Initialize all pixels to transparent
-        self.pixel_data = [
-            ["#00000000"] * self.canvas_size.x for _ in range(self.canvas_size.y)
-        ]
+        # self.pixel_data = [
+        #     ["#00000000"] * self.canvas_size.x for _ in range(self.canvas_size.y)
+        # ]
 
         # Create and configure the left click gesture controller
         self.left_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=1)
@@ -84,6 +80,15 @@ class DrawingArea(Adw.Bin):
         self.drawing_area.add_controller(self.motion_ctrl)
 
         self.set_child(self.drawing_area)
+
+    def load_image(self, pixel_data: list[list[str]]) -> None:
+        self.pixel_data = pixel_data
+        self.canvas_size.x = len(pixel_data[0])
+        self.canvas_size.y = len(pixel_data)
+        # Set the size of the drawing area based on the grid size and canvas size
+        self.drawing_area.set_content_width(self.canvas_size.x * self.grid_size)
+        self.drawing_area.set_content_height(self.canvas_size.y * self.grid_size)
+        self.drawing_area.set_draw_func(self.on_draw)
 
     def __setup_styles(self) -> None:
         self.styles: str = """
