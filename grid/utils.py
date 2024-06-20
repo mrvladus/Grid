@@ -14,14 +14,13 @@ def rgba_to_hex(rgba: tuple[int, int, int, int]) -> str:
     return "#{:02x}{:02x}{:02x}{:02x}".format(r, g, b, a)
 
 
-def hex_to_rgba(hex_code: str) -> tuple[int, int, int, int]:
+def hex_to_rgba(hex_code: str) -> tuple[float, float, float, float]:
     """Convert HEX to RGBA 0-1 floats tuple"""
     hex_code = hex_code.lstrip("#")
-    r: int = int(hex_code[0:2], 16)
-    g: int = int(hex_code[2:4], 16)
-    b: int = int(hex_code[4:6], 16)
-    a: int = int(hex_code[6:8], 16) if len(hex_code) > 6 else 255
-    return (r / 255.0, g / 255.0, b / 255.0, a / 255.0)
+    length = len(hex_code)
+    rgb = [int(hex_code[i : i + 2], 16) / 255.0 for i in range(0, 6, 2)]
+    alpha = int(hex_code[6:8], 16) / 255.0 if length == 8 else 1.0
+    return (*rgb, alpha)
 
 
 def get_pallete_colors_from_file(image_path: str) -> list[str]:

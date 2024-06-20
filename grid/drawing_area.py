@@ -36,11 +36,6 @@ class DrawingArea(Adw.Bin):
             cursor=Gdk.Cursor(name="cell"),
         )
 
-        # Initialize all pixels to transparent
-        # self.pixel_data = [
-        #     ["#00000000"] * self.canvas_size.x for _ in range(self.canvas_size.y)
-        # ]
-
         # Create and configure the left click gesture controller
         self.left_click_ctrl: Gtk.GestureClick = Gtk.GestureClick(button=1)
         self.left_click_ctrl.connect(
