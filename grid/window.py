@@ -24,20 +24,23 @@ class Window(Adw.ApplicationWindow):
         self.set_default_size(800, 600)
 
         # Content
-        save_img_btn: Gtk.Button = Gtk.Button(
-            tooltip_text="Save", icon_name="document-save-symbolic"
+        save_img_btn: Button = Button(
+            tooltip_text="Save",
+            icon_name="document-save-symbolic",
+            on_click=self.__on_save_img_btn_clicked,
         )
-        save_img_btn.connect("clicked", self.__on_save_img_btn_clicked)
 
-        new_btn: Gtk.Button = Gtk.Button(
-            tooltip_text="New", icon_name="grid-new-symbolic"
+        new_btn: Button = Button(
+            tooltip_text="New",
+            icon_name="grid-new-symbolic",
+            on_click=self.__on_new_btn_clicked,
         )
-        new_btn.connect("clicked", self.__on_new_btn_clicked)
 
-        open_btn: Gtk.Button = Gtk.Button(
-            tooltip_text="Open", icon_name="grid-open-symbolic"
+        open_btn: Button = Button(
+            tooltip_text="Open",
+            icon_name="grid-open-symbolic",
+            on_click=self.__on_open_btn_clicked,
         )
-        open_btn.connect("clicked", self.__on_open_btn_clicked)
 
         hb: Adw.HeaderBar = Adw.HeaderBar()
         hb.pack_start(new_btn)
