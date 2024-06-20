@@ -7,7 +7,6 @@ exclude = [
     ".vscode",
     "_build",
     "venv",
-    ".venv",
 ]
 
 [tool.ruff.lint]
