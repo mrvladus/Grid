@@ -68,7 +68,10 @@ class Window(Adw.ApplicationWindow):
             except BaseException as e:
                 print(e)
 
-        Gtk.FileDialog(initial_name="untitled.png").save(self, None, __save_cb)
+        Gtk.FileDialog(
+            initial_name="untitled.png",
+            default_filter=Gtk.FileFilter(patterns=["*.png"]),
+        ).save(self, None, __save_cb)
 
     def __on_new_btn_clicked(self, _) -> None:
         if not State.new_dialog:
