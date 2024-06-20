@@ -11,7 +11,9 @@ def generate_random_ascii_string(length: int) -> str:
 
 def rgba_to_hex(rgba: tuple[int, int, int, int]) -> str:
     r, g, b, a = rgba
-    return "#{:02x}{:02x}{:02x}{:02x}".format(r, g, b, a)
+    return "#{:02x}{:02x}{:02x}{:02x}".format(
+        int(r * 255), int(g * 255), int(b * 255), int(a * 255)
+    )
 
 
 def hex_to_rgba(hex_code: str) -> tuple[float, float, float, float]:

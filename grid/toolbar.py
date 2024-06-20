@@ -181,9 +181,9 @@ class Line(DrawTool):
         err = dx - dy
 
         if State.drawing_area.left_click_ctrl.get_current_button() == 1:
-            cr.set_source_rgba(*Utils.hex_to_rgba(State.palette_bar.primary_color))
+            cr.set_source_rgba(*State.palette_bar.primary_color)
         elif State.drawing_area.right_click_ctrl.get_current_button() == 3:
-            cr.set_source_rgba(*Utils.hex_to_rgba(State.palette_bar.secondary_color))
+            cr.set_source_rgba(*State.palette_bar.secondary_color)
 
         while True:
             cr.rectangle(
@@ -245,7 +245,7 @@ class Eraser(DrawTool):
             0 <= x < State.drawing_area.canvas_size.x
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
-            State.drawing_area.pixel_data[y][x] = "#00000000"
+            State.drawing_area.pixel_data[y][x] = (0, 0, 0, 0)
             State.drawing_area.drawing_area.queue_draw()
 
     def left_click_hold(self, x: int, y: int) -> None:

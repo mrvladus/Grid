@@ -13,11 +13,11 @@ class Point:
 
 
 class DrawingArea(Adw.Bin):
-    cur_pos: list[int, int] = None  # Current position of the cursor on the grid
-    prev_pos: list[int, int] = None  # Previous position of the cursor on the grid
-    grid_size: int = 20  # Size of each grid cell in pixels
+    cur_pos: list[int, int] = None
+    prev_pos: list[int, int] = None
+    grid_size: int = 20
     canvas_size: Point = Point(16, 16)
-    pixel_data: list[str] = []  # Stores the color data for each pixel in the grid
+    pixel_data: list[tuple[int]] = []
 
     def __init__(self) -> None:
         super().__init__()
@@ -162,7 +162,7 @@ class DrawingArea(Adw.Bin):
         # Draw the pixel data on the drawing area
         for x in range(self.canvas_size.x):
             for y in range(self.canvas_size.y):
-                cr.set_source_rgba(*Utils.hex_to_rgba(self.pixel_data[y][x]))
+                cr.set_source_rgba(*self.pixel_data[y][x])
                 cr.rectangle(
                     x * self.grid_size,
                     y * self.grid_size,

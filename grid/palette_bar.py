@@ -29,26 +29,31 @@ class PaletteItem(Adw.Bin):
         self.add_controller(right_click_ctrl)
 
     def __on_left_click(self, *_):
-        State.palette_bar.primary_color = self.color
+        State.palette_bar.primary_color = Utils.hex_to_rgba(self.color)
 
     def __on_right_click(self, *_):
-        State.palette_bar.secondary_color = self.color
+        State.palette_bar.secondary_color = Utils.hex_to_rgba(self.color)
 
 
 class PaletteBar(Gtk.Box):
-    __primary_color: str = "#000000ff"
-    __secondary_color: str = "#00000000"
+    __primary_color: str = (0, 0, 0, 1)
+    __secondary_color: str = (0, 0, 0, 0)
 
     @property
     def primary_color(self) -> str:
         return self.__primary_color
 
     @primary_color.setter
-    def primary_color(self, new_color: str):
+    def primary_color(self, new_color: tuple[int]):
         self.__primary_color = new_color
-        self.primary_color_btn.set_tooltip_text(new_color + " (Left Click)")
+        self.primary_color_btn.set_tooltip_text(
+            Utils.rgba_to_hex(new_color) + " (Left Click)"
+        )
         self.primary_color_btn.set_css_classes(
-            ["palette-item", self.__get_css_class_for_color(new_color)]
+            [
+                "palette-item",
+                self.__get_css_class_for_color(Utils.rgba_to_hex(new_color)),
+            ]
         )
 
     @property
@@ -58,9 +63,14 @@ class PaletteBar(Gtk.Box):
     @secondary_color.setter
     def secondary_color(self, new_color: str):
         self.__secondary_color = new_color
-        self.secondary_color_btn.set_tooltip_text(new_color + " (Right Click)")
+        self.secondary_color_btn.set_tooltip_text(
+            Utils.rgba_to_hex(new_color) + " (Right Click)"
+        )
         self.secondary_color_btn.set_css_classes(
-            ["palette-item", self.__get_css_class_for_color(new_color)]
+            [
+                "palette-item",
+                self.__get_css_class_for_color(Utils.rgba_to_hex(new_color)),
+            ]
         )
 
     def __init__(self) -> None:
@@ -142,9 +152,9 @@ class PaletteBar(Gtk.Box):
         self.append(Gtk.Separator())
 
         self.primary_color_btn = Adw.Bin()
-        self.primary_color = "#000000ff"
+        self.primary_color = (0, 0, 0, 1)
         self.secondary_color_btn = Adw.Bin()
-        self.secondary_color = "#00000000"
+        self.secondary_color = (0, 0, 0, 0)
 
         self.append(
             Box(

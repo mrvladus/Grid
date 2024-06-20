@@ -4,7 +4,7 @@ from shared import Box, Button, ToolbarView
 
 
 class NewDialog(Adw.Dialog):
-    bg_color: str = "#00000000"
+    bg_color: tuple[int] = (0, 0, 0, 0)
 
     def __init__(self) -> None:
         super().__init__()
