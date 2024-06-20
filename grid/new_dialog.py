@@ -97,5 +97,6 @@ class NewDialog(Adw.Dialog):
 
     def __create_new_sprite(self, width: int, height: int) -> None:
         self.close()
+        State.main_window.welcome_page.set_visible(False)
         pixel_data: list[list[str]] = [[self.bg_color] * width for _ in range(height)]
         State.drawing_area.load_image(pixel_data)

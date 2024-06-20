@@ -2,7 +2,7 @@ import utils as Utils
 from drawing_area import DrawingArea
 from gi.repository import Adw, Gio, Gtk  # type:ignore
 from palette_bar import PaletteBar
-from shared import Box, ToolbarView
+from shared import Box, ToolbarView, Button
 from state import State
 from toolbar import Toolbar
 from new_dialog import NewDialog
@@ -44,8 +44,40 @@ class Window(Adw.ApplicationWindow):
         hb.pack_start(open_btn)
         hb.pack_start(save_img_btn)
 
-        self.set_content(
-            ToolbarView(
+        # Empty state overlay
+        self.welcome_page = ToolbarView(
+            css_classes=["background"],
+            top_bars=[Adw.HeaderBar()],
+            content=Adw.StatusPage(
+                description="Create or open new sprite",
+                vexpand=True,
+                css_classes=["background"],
+                child=Box(
+                    halign=Gtk.Align.CENTER,
+                    spacing=12,
+                    children=[
+                        Button(
+                            child=Adw.ButtonContent(
+                                label="Create", icon_name="grid-new-symbolic"
+                            ),
+                            on_click=lambda *_: self.__on_new_btn_clicked(None),
+                            css_classes=["pill"],
+                            halign=Gtk.Align.CENTER,
+                        ),
+                        Button(
+                            child=Adw.ButtonContent(
+                                label="Open", icon_name="grid-open-symbolic"
+                            ),
+                            on_click=lambda *_: self.__on_open_btn_clicked(None),
+                            css_classes=["pill"],
+                            halign=Gtk.Align.CENTER,
+                        ),
+                    ],
+                ),
+            ),
+        )
+        overlay: Gtk.Overlay = Gtk.Overlay(
+            child=ToolbarView(
                 top_bars=[hb],
                 content=Box(
                     children=[
@@ -59,6 +91,9 @@ class Window(Adw.ApplicationWindow):
                 top_bar_style=Adw.ToolbarStyle.RAISED_BORDER,
             )
         )
+        overlay.add_overlay(self.welcome_page)
+
+        self.set_content(overlay)
 
     def __on_save_img_btn_clicked(self, _) -> None:
         def __save_cb(dialog: Gtk.FileDialog, res: Gio.Task) -> None:
@@ -84,6 +119,7 @@ class Window(Adw.ApplicationWindow):
                 path: str = dialog.open_finish(res).get_path()
                 pixel_data: list[list[str]] = Utils.load_png(path)
                 State.drawing_area.load_image(pixel_data)
+                self.welcome_page.set_visible(False)
             except BaseException as e:
                 print(e)
 
