@@ -6,46 +6,24 @@ from shared import Box, Button, ToolbarView
 class NewDialog(Adw.Dialog):
     bg_color: tuple[int] = (0, 0, 0, 0)
 
+    presets: list[int] = [4, 8, 16, 32, 64]
+
     def __init__(self) -> None:
         super().__init__()
         self.__build_ui()
 
     def __build_ui(self) -> None:
         self.set_content_width(360)
-        # Presets
-        x8_btn = Button(
-            label="8x8",
-            css_classes=["flat"],
-            on_click=lambda *_: self.__create_new_sprite(8, 8),
+        presets_box = Gtk.Box(
+            css_classes=["toolbar"], halign=Gtk.Align.CENTER, homogeneous=True
         )
-        x16_btn = Button(
-            label="16x16",
-            css_classes=["flat"],
-            on_click=lambda *_: self.__create_new_sprite(16, 16),
-        )
-        x32_btn = Button(
-            label="32x32",
-            css_classes=["flat"],
-            on_click=lambda *_: self.__create_new_sprite(32, 32),
-        )
-        x64_btn = Button(
-            label="64x64",
-            css_classes=["flat"],
-            on_click=lambda *_: self.__create_new_sprite(64, 64),
-        )
+        for pr in self.presets:
+            btn = Gtk.Button(label=f"{pr}x{pr}", css_classes=["flat"])
+            btn.connect("clicked", self.__create_new_sprite, pr, pr)
+            presets_box.append(btn)
 
         presets_group = Adw.PreferencesGroup(title="Presets")
-        presets_group.add(
-            Adw.PreferencesRow(
-                child=Box(
-                    children=[x8_btn, x16_btn, x32_btn, x64_btn],
-                    css_classes=["toolbar"],
-                    halign=Gtk.Align.CENTER,
-                    homogeneous=True,
-                ),
-                activatable=False,
-            )
-        )
+        presets_group.add(Adw.PreferencesRow(child=presets_box, activatable=False))
 
         # Custom size
         width = Adw.SpinRow(
@@ -71,7 +49,7 @@ class NewDialog(Adw.Dialog):
             css_classes=["pill", "suggested-action"],
             halign=Gtk.Align.CENTER,
             on_click=lambda *_: self.__create_new_sprite(
-                int(width.get_value()), int(height.get_value())
+                None, int(width.get_value()), int(height.get_value())
             ),
         )
 
@@ -95,7 +73,7 @@ class NewDialog(Adw.Dialog):
             )
         )
 
-    def __create_new_sprite(self, width: int, height: int) -> None:
+    def __create_new_sprite(self, _, width: int, height: int) -> None:
         self.close()
         State.main_window.welcome_page.set_visible(False)
         pixel_data: list[list[str]] = [[self.bg_color] * width for _ in range(height)]

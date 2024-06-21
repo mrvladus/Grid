@@ -116,12 +116,12 @@ class DrawingArea(Adw.Bin):
             for x, color in enumerate(row):
                 ctx.set_source_rgba(*color)
                 ctx.rectangle(
-                    x * self.grid_size,  # Calculate x position based on grid size
-                    y * self.grid_size,  # Calculate y position based on grid size
-                    self.grid_size,  # Width of the rectangle (grid size)
-                    self.grid_size,  # Height of the rectangle (grid size)
+                    x * self.grid_size,
+                    y * self.grid_size,
+                    self.grid_size,
+                    self.grid_size,
                 )
-                ctx.fill()  # Fill the rectangle with the current color
+                ctx.fill()
 
     def __setup_styles(self) -> None:
         self.styles: str = """
@@ -194,6 +194,18 @@ class DrawingArea(Adw.Bin):
         # Update the pixel data on the cached surface
         ctx = cairo.Context(self.cached_surface)
         color = self.pixel_data[y][x]
+
+        if color[3] == 0:
+            ctx.set_operator(cairo.Operator.CLEAR)
+            ctx.rectangle(
+                x * self.grid_size,
+                y * self.grid_size,
+                self.grid_size,
+                self.grid_size,
+            )
+            ctx.fill()
+            ctx.set_operator(cairo.Operator.OVER)
+
         ctx.set_source_rgba(*color)
         ctx.rectangle(
             x * self.grid_size,
@@ -219,9 +231,29 @@ class DrawingArea(Adw.Bin):
         # Draw tool overlay
         State.toolbar.current_tool.draw_overlay(cr)
 
-        # Draw the cursor
-        if self.cur_pos:
-            cr.set_source_rgba(0, 0, 1, 1)
+        # Draw the cursor if it's within bounds
+        if (
+            self.cur_pos
+            and 0 <= self.cur_pos[0] < self.canvas_size.x
+            and 0 <= self.cur_pos[1] < self.canvas_size.y
+        ):
+            # Get the pixel color at the cursor position
+            pixel_color = self.pixel_data[self.cur_pos[1]][self.cur_pos[0]]
+
+            # Check if background is transparent (assuming RGBA format where 0 is fully transparent)
+            if pixel_color[3] == 0:
+                cr.set_source_rgba(0, 0, 0, 1.0)  # Set cursor color to black
+            else:
+                # Calculate brightness of the pixel color (average of RGB components)
+                brightness = (pixel_color[0] + pixel_color[1] + pixel_color[2]) / 3
+
+                # Decide cursor color based on brightness
+                if brightness > 0.5:  # Bright background
+                    cr.set_source_rgba(0, 0, 0, 1.0)  # Black cursor
+                else:  # Dark background
+                    cr.set_source_rgba(1, 1, 1, 1.0)  # White cursor
+
+            # Draw the cursor rectangle
             cr.rectangle(
                 self.cur_pos[0] * self.grid_size + 1,
                 self.cur_pos[1] * self.grid_size + 1,
@@ -229,3 +261,14 @@ class DrawingArea(Adw.Bin):
                 self.grid_size - 2,
             )
             cr.stroke()
+
+        # Draw the cursor
+        # if self.cur_pos:
+        #     cr.set_source_rgba(0, 0, 1, 1)
+        #     cr.rectangle(
+        #         self.cur_pos[0] * self.grid_size + 1,
+        #         self.cur_pos[1] * self.grid_size + 1,
+        #         self.grid_size - 2,
+        #         self.grid_size - 2,
+        #     )
+        #     cr.stroke()

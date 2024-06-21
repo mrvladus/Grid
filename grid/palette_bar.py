@@ -154,7 +154,7 @@ class PaletteBar(Gtk.Box):
         self.primary_color_btn = Adw.Bin()
         self.primary_color = (0, 0, 0, 1)
         self.secondary_color_btn = Adw.Bin()
-        self.secondary_color = (0, 0, 0, 0)
+        self.secondary_color = (1, 1, 1, 1)
 
         self.append(
             Box(

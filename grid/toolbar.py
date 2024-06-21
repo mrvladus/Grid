@@ -101,7 +101,6 @@ class Pencil(DrawTool):
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
             State.drawing_area.update_pixel(x, y)
-            # State.drawing_area.drawing_area.queue_draw()
 
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
@@ -112,7 +111,7 @@ class Pencil(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.secondary_color
-            State.drawing_area.drawing_area.queue_draw()
+            State.drawing_area.update_pixel(x, y)
 
     def right_click_hold(self, x: int, y: int) -> None:
         self.right_click(x, y)
@@ -206,6 +205,7 @@ class Line(DrawTool):
             if x0 > cs_x or x0 < 0 or y0 > cs_y or y0 < 0:
                 break
             State.drawing_area.pixel_data[y0][x0] = color
+            State.drawing_area.update_pixel(x0, y0)
             if (x0 == x1) and (y0 == y1):
                 break
             e2 = 2 * err
@@ -215,7 +215,6 @@ class Line(DrawTool):
             if e2 < dx:
                 err += dx
                 y0 += sy
-        State.drawing_area.queue_draw()
 
 
 class Eraser(DrawTool):
@@ -228,7 +227,7 @@ class Eraser(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = (0, 0, 0, 0)
-            State.drawing_area.drawing_area.queue_draw()
+            State.drawing_area.update_pixel(x, y)
 
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
