@@ -95,26 +95,33 @@ class DrawingArea(Adw.Bin):
         self.drawing_area.queue_draw()
 
     def update_canvas_size(self):
-        # Set the size of the drawing area based on the grid size and canvas size
+        """Set the size of the drawing area based on the grid size and canvas size"""
         self.drawing_area.set_content_width(self.canvas_size.x * self.grid_size)
         self.drawing_area.set_content_height(self.canvas_size.y * self.grid_size)
 
     def redraw_cached_surface(self):
+        # Create a context for the cached surface
         ctx = cairo.Context(self.cached_surface)
+
+        # Clear the surface by setting the source color to transparent and painting
         ctx.set_source_rgba(0, 0, 0, 0)
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.paint()
+
+        # Set the operator back to OVER for normal drawing
         ctx.set_operator(cairo.OPERATOR_OVER)
+
+        # Iterate through the pixel data and draw each pixel at the correct position
         for y, row in enumerate(self.pixel_data):
             for x, color in enumerate(row):
                 ctx.set_source_rgba(*color)
                 ctx.rectangle(
-                    x * self.grid_size,
-                    y * self.grid_size,
-                    self.grid_size,
-                    self.grid_size,
+                    x * self.grid_size,  # Calculate x position based on grid size
+                    y * self.grid_size,  # Calculate y position based on grid size
+                    self.grid_size,  # Width of the rectangle (grid size)
+                    self.grid_size,  # Height of the rectangle (grid size)
                 )
-                ctx.fill()
+                ctx.fill()  # Fill the rectangle with the current color
 
     def __setup_styles(self) -> None:
         self.styles: str = """
