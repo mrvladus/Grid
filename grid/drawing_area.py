@@ -18,6 +18,7 @@ class DrawingArea(Adw.Bin):
     grid_size: int = 20
     canvas_size: Point = Point(16, 16)
     pixel_data: list[tuple[int]] = []
+    cached_surface: cairo.Surface = None
 
     def __init__(self) -> None:
         super().__init__()
@@ -80,10 +81,40 @@ class DrawingArea(Adw.Bin):
         self.pixel_data = pixel_data
         self.canvas_size.x = len(pixel_data[0])
         self.canvas_size.y = len(pixel_data)
+        self.update_canvas_size()
+
+        # Create a cached surface for the pixel data
+        self.cached_surface = cairo.ImageSurface(
+            cairo.FORMAT_ARGB32,
+            self.canvas_size.x * self.grid_size,
+            self.canvas_size.y * self.grid_size,
+        )
+        self.redraw_cached_surface()
+
+        self.drawing_area.set_draw_func(self.on_draw)
+        self.drawing_area.queue_draw()
+
+    def update_canvas_size(self):
         # Set the size of the drawing area based on the grid size and canvas size
         self.drawing_area.set_content_width(self.canvas_size.x * self.grid_size)
         self.drawing_area.set_content_height(self.canvas_size.y * self.grid_size)
-        self.drawing_area.set_draw_func(self.on_draw)
+
+    def redraw_cached_surface(self):
+        ctx = cairo.Context(self.cached_surface)
+        ctx.set_source_rgba(0, 0, 0, 0)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint()
+        ctx.set_operator(cairo.OPERATOR_OVER)
+        for y, row in enumerate(self.pixel_data):
+            for x, color in enumerate(row):
+                ctx.set_source_rgba(*color)
+                ctx.rectangle(
+                    x * self.grid_size,
+                    y * self.grid_size,
+                    self.grid_size,
+                    self.grid_size,
+                )
+                ctx.fill()
 
     def __setup_styles(self) -> None:
         self.styles: str = """
@@ -152,6 +183,20 @@ class DrawingArea(Adw.Bin):
         self.cur_pos = None  # Reset the current position when the pointer leaves
         self.drawing_area.queue_draw()  # Request a redraw of the drawing area
 
+    def update_pixel(self, x: int, y: int):
+        # Update the pixel data on the cached surface
+        ctx = cairo.Context(self.cached_surface)
+        color = self.pixel_data[y][x]
+        ctx.set_source_rgba(*color)
+        ctx.rectangle(
+            x * self.grid_size,
+            y * self.grid_size,
+            self.grid_size,
+            self.grid_size,
+        )
+        ctx.fill()
+        self.drawing_area.queue_draw()
+
     def on_draw(
         self,
         _drawing_area: Gtk.DrawingArea,
@@ -159,26 +204,10 @@ class DrawingArea(Adw.Bin):
         _width: int,
         _height: int,
     ) -> None:
-        # Draw the pixel data on the drawing area
-        for x in range(self.canvas_size.x):
-            for y in range(self.canvas_size.y):
-                cr.set_source_rgba(*self.pixel_data[y][x])
-                cr.rectangle(
-                    x * self.grid_size,
-                    y * self.grid_size,
-                    self.grid_size,
-                    self.grid_size,
-                )
-                cr.fill()
-                # Uncomment the following lines to draw grid lines
-                # cr.set_source_rgba(0.8, 0.8, 0.8, 1)
-                # cr.rectangle(
-                #     x * self.grid_size,
-                #     y * self.grid_size,
-                #     self.grid_size,
-                #     self.grid_size,
-                # )
-                # cr.stroke()
+        # Draw the cached surface with pixel data
+        if self.cached_surface:
+            cr.set_source_surface(self.cached_surface, 0, 0)
+            cr.paint()
 
         # Draw tool overlay
         State.toolbar.current_tool.draw_overlay(cr)

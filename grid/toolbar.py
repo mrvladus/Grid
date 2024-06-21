@@ -56,57 +56,38 @@ class Zoom(Gtk.Box, CustomTool):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_spacing(5)
 
-        self.plus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-plus-symbolic", tooltip_text="Zoom In (Ctrl+Plus)"
+        self.zoom_in_button = Gtk.Button(
+            icon_name="grid-plus-symbolic", css_classes=["flat"]
         )
-        self.plus_btn.connect("clicked", self.__on_plus_clicked)
-        self.plus_btn.add_controller(Utils.button_shortcut("<Control>equal"))
-        self.append(self.plus_btn)
+        self.zoom_in_button.connect("clicked", self.on_zoom_in)
+        self.append(self.zoom_in_button)
 
-        self.minus_btn: Gtk.Button = Gtk.Button(
-            icon_name="grid-minus-symbolic", tooltip_text="Zoom Out (Ctrl+Minus)"
-        )
-        self.minus_btn.connect("clicked", self.__on_minus_clicked)
-        self.minus_btn.add_controller(Utils.button_shortcut("<Control>minus"))
-        self.append(self.minus_btn)
+        self.label = Gtk.Label(label="100")
+        self.append(self.label)
 
-        # Scroll ctrl
-        scroll_ctrl = Gtk.EventControllerScroll.new(
-            Gtk.EventControllerScrollFlags.VERTICAL
+        self.zoom_out_button = Gtk.Button(
+            icon_name="grid-minus-symbolic", css_classes=["flat"]
         )
-        scroll_ctrl.connect("scroll", self.__on_mouse_scroll)
-        State.drawing_area.add_controller(scroll_ctrl)
+        self.zoom_out_button.connect("clicked", self.on_zoom_out)
+        self.append(self.zoom_out_button)
 
-    def update_ui(self):
-        self.minus_btn.set_sensitive(State.drawing_area.grid_size - 2 > 0)
-        self.plus_btn.set_sensitive(State.drawing_area.grid_size + 2 < 40)
+    def on_zoom_in(self, _):
+        State.drawing_area.grid_size = min(State.drawing_area.grid_size + 5, 50)
+        self.update_zoom_label()
+        State.drawing_area.update_canvas_size()
+        State.drawing_area.redraw_cached_surface()
+        State.drawing_area.drawing_area.queue_draw()
 
-    def __on_plus_clicked(self, _) -> None:
-        State.drawing_area.grid_size += 2
-        State.drawing_area.drawing_area.set_content_width(
-            State.drawing_area.canvas_size.x * State.drawing_area.grid_size
-        )
-        State.drawing_area.drawing_area.set_content_height(
-            State.drawing_area.canvas_size.y * State.drawing_area.grid_size
-        )
-        self.update_ui()
+    def on_zoom_out(self, _):
+        State.drawing_area.grid_size = max(State.drawing_area.grid_size - 5, 2)
+        self.update_zoom_label()
+        State.drawing_area.update_canvas_size()
+        State.drawing_area.redraw_cached_surface()
+        State.drawing_area.drawing_area.queue_draw()
 
-    def __on_minus_clicked(self, _) -> None:
-        State.drawing_area.grid_size -= 2
-        State.drawing_area.drawing_area.set_content_width(
-            State.drawing_area.canvas_size.x * State.drawing_area.grid_size
-        )
-        State.drawing_area.drawing_area.set_content_height(
-            State.drawing_area.canvas_size.y * State.drawing_area.grid_size
-        )
-        self.update_ui()
-
-    def __on_mouse_scroll(self, ec: Gtk.EventControllerScroll, _x: float, y: float):
-        if ec.get_current_event_state() == Gdk.ModifierType.CONTROL_MASK:
-            if y < 0 and self.plus_btn.get_sensitive():
-                self.__on_plus_clicked(None)
-            elif y > 0 and self.minus_btn.get_sensitive():
-                self.__on_minus_clicked(None)
+    def update_zoom_label(self):
+        zoom_level = int((State.drawing_area.grid_size / 20) * 100)
+        self.label.set_text(f"{zoom_level}")
 
 
 class Pencil(DrawTool):
@@ -119,7 +100,8 @@ class Pencil(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
-            State.drawing_area.drawing_area.queue_draw()
+            State.drawing_area.update_pixel(x, y)
+            # State.drawing_area.drawing_area.queue_draw()
 
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
