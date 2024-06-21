@@ -31,7 +31,7 @@ class NewDialog(Adw.Dialog):
             adjustment=Gtk.Adjustment(
                 lower=0, step_increment=1, page_increment=10, upper=10000
             ),
-            value=16,
+            value=500,
             numeric=True,
             activatable=False,
         )
@@ -40,7 +40,7 @@ class NewDialog(Adw.Dialog):
             adjustment=Gtk.Adjustment(
                 lower=0, step_increment=1, page_increment=10, upper=10000
             ),
-            value=16,
+            value=500,
             numeric=True,
             activatable=False,
         )

@@ -22,6 +22,7 @@ class Window(Adw.ApplicationWindow):
         self.props.height_request = 200
         self.props.width_request = 360
         self.set_default_size(800, 600)
+        self.maximize()
 
         # Content
         save_img_btn: Button = Button(

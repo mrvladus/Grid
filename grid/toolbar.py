@@ -91,6 +91,8 @@ class Zoom(Gtk.Box, CustomTool):
 
 
 class Pencil(DrawTool):
+    pixel_data: list[int, int, tuple[float, float, float, float]] = []
+
     def __init__(self) -> None:
         super().__init__("Pencil (P)", "grid-pencil-symbolic", "P")
 
@@ -100,10 +102,14 @@ class Pencil(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
-            State.drawing_area.update_pixel(x, y)
+            self.pixel_data.append((x, y, State.palette_bar.primary_color))
+            State.drawing_area.drawing_area.queue_draw()
 
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
+
+    def left_click_release(self, x: int, y: int) -> None:
+        self.__draw_new_pixels()
 
     def right_click(self, x: int, y: int):
         if (
@@ -111,10 +117,38 @@ class Pencil(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = State.palette_bar.secondary_color
-            State.drawing_area.update_pixel(x, y)
+            self.pixel_data.append((x, y, State.palette_bar.secondary_color))
+            State.drawing_area.drawing_area.queue_draw()
 
     def right_click_hold(self, x: int, y: int) -> None:
         self.right_click(x, y)
+
+    def right_click_release(self, x: int, y: int) -> None:
+        self.__draw_new_pixels()
+
+    def draw_overlay(self, cr: cairo.Context) -> None:
+        for pix in self.pixel_data:
+            cr.set_source_rgba(*pix[2])
+            cr.rectangle(
+                pix[0] * State.drawing_area.grid_size,
+                pix[1] * State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+            )
+            cr.fill()
+
+    def __draw_new_pixels(self) -> None:
+        ctx = cairo.Context(State.drawing_area.cached_surface)
+        for pix in self.pixel_data:
+            ctx.set_source_rgba(*pix[2])
+            ctx.rectangle(
+                pix[0] * State.drawing_area.grid_size,
+                pix[1] * State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+                State.drawing_area.grid_size,
+            )
+            ctx.fill()
+        State.drawing_area.drawing_area.queue_draw()
 
 
 class Line(DrawTool):
@@ -227,6 +261,7 @@ class Eraser(DrawTool):
             and 0 <= y < State.drawing_area.canvas_size.y
         ):
             State.drawing_area.pixel_data[y][x] = (0, 0, 0, 0)
+
             State.drawing_area.update_pixel(x, y)
 
     def left_click_hold(self, x: int, y: int) -> None:
