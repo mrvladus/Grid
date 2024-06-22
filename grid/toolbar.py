@@ -97,34 +97,34 @@ class Pencil(DrawTool):
         super().__init__("Pencil (P)", "grid-pencil-symbolic", "P")
 
     def left_click(self, x: int, y: int):
-        if (
-            0 <= x < State.drawing_area.canvas_size.x
-            and 0 <= y < State.drawing_area.canvas_size.y
-        ):
-            State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
-            self.pixel_data.append((x, y, State.palette_bar.primary_color))
-            State.drawing_area.drawing_area.queue_draw()
+        if State.drawing_area.left_click_ctrl.get_current_button() == 1:
+            if (
+                0 <= x < State.drawing_area.canvas_size.x
+                and 0 <= y < State.drawing_area.canvas_size.y
+            ):
+                State.drawing_area.pixel_data[y][x] = State.palette_bar.primary_color
+                self.pixel_data.append((x, y, State.palette_bar.primary_color))
+                State.drawing_area.drawing_area.queue_draw()
+        else:
+            self.__draw_new_pixels()
 
     def left_click_hold(self, x: int, y: int) -> None:
         self.left_click(x, y)
 
-    def left_click_release(self, x: int, y: int) -> None:
-        self.__draw_new_pixels()
-
     def right_click(self, x: int, y: int):
-        if (
-            0 <= x < State.drawing_area.canvas_size.x
-            and 0 <= y < State.drawing_area.canvas_size.y
-        ):
-            State.drawing_area.pixel_data[y][x] = State.palette_bar.secondary_color
-            self.pixel_data.append((x, y, State.palette_bar.secondary_color))
-            State.drawing_area.drawing_area.queue_draw()
+        if State.drawing_area.right_click_ctrl.get_current_button() == 3:
+            if (
+                0 <= x < State.drawing_area.canvas_size.x
+                and 0 <= y < State.drawing_area.canvas_size.y
+            ):
+                State.drawing_area.pixel_data[y][x] = State.palette_bar.secondary_color
+                self.pixel_data.append((x, y, State.palette_bar.secondary_color))
+                State.drawing_area.drawing_area.queue_draw()
+        else:
+            self.__draw_new_pixels()
 
     def right_click_hold(self, x: int, y: int) -> None:
         self.right_click(x, y)
-
-    def right_click_release(self, x: int, y: int) -> None:
-        self.__draw_new_pixels()
 
     def draw_overlay(self, cr: cairo.Context) -> None:
         for pix in self.pixel_data:
@@ -149,6 +149,7 @@ class Pencil(DrawTool):
             )
             ctx.fill()
         State.drawing_area.drawing_area.queue_draw()
+        self.pixel_data = []
 
 
 class Line(DrawTool):
